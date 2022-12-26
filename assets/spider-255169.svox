@@ -1,0 +1,24 @@
+model
+name = spider
+size = 10 10 16
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#1F102A B:#4A3052 C:#4E187C
+voxels
+---------- ---------- ---------- ---------- ---------- --A----A-- ---------- ---------- ---------- ---------- 
+---------- ---------- ---------- ---------- ---BBBB--- --ABBBBA-- ---CBBC--- ---------- ---------- ---------- 
+---------- ---------- ---------- ---------- ---BBBB--- ---BBBB--- ---CBBC--- ---------- ---------- ---------- 
+---------- ---------- ---------- ---------- ---BBBB--- ---BBBB--- ---BBBB--- ---------- ---------- ---------- 
+BB------BB -A------A- -BAA--AAB- ----AA---- ----AA---- ---BBBB--- ----AA---- ---------- ---------- ---------- 
+---------- ---------- ---------- ---------- ----AA---- ----AA---- ----AA---- ---------- ---------- ---------- 
+BB------BB -A------A- -BAA--AAB- ----AA---- ----AA---- ----AA---- ----AA---- ---------- ---------- ---------- 
+---------- ---------- ---------- ---------- ----AA---- ----AA---- ----AA---- ---------- ---------- ---------- 
+BB------BB -A------A- -BAA--AAB- ----AA---- ---AAAA--- ---AAAA--- ---AAAA--- ---------- ---------- ---------- 
+---------- ---------- ---------- ---------- -AAAAAAAA- ABBBBBBBBA ABBBBBBBBA -AAAAAAAA- ---------- ---------- 
+BB------BB -A------A- -BAA--AAB- ----AA---- AAAABBAAAA BBBBBBBBBB BBBBBBBBBB AAAAAAAAAA --AAAAAA-- ---------- 
+---------- ---------- ---------- ---------- AAAAAAAAAA BBBBBBBBBB BBBBBBBBBB AAAAAAAAAA -AAAAAAAA- ---AAAA--- 
+---------- ---------- ---------- ---------- AAAAAAAAAA BBBBBBBBBB BBBBBBBBBB AAAAAAAAAA -AAAAAAAA- --AAAAAA-- 
+---------- ---------- ---------- ---------- AAAAAAAAAA BBBBBBBBBB BBBBBBBBBB AAAAAAAAAA -AAAAAAAA- ---AAAA--- 
+---------- ---------- ---------- ---------- AAAAAAAAAA BBBBBBBBBB BBBBBBBBBB AAAAAAAAAA --AAAAAA-- ---------- 
+---------- ---------- ---------- ---------- -AAAAAAAA- ABBBBBBBBA ABBBBBBBBA -AAAAAAAA- ---------- ---------- 
