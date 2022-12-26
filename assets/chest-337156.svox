@@ -1,0 +1,18 @@
+model
+name = chest
+size = 16 6 10
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#A6555F B:#7B5480 C:#C97373
+voxels
+BB------------BB ---------------- ---------------- ---------------- ---------------- BB------------BB 
+BBBBBBBBBBBBBBBB -BACACACACACACB- -BACACACACACACB- -BACACACACACACB- -BACACACACACACB- BBBBBBBBBBBBBBBB 
+-BAAAAAAAAAAAAB- -CAAAAAAAAAAAAA- -C------------A- -C------------A- -C------------A- -B------------B- 
+-BAAAAAAAAAAAAB- -AAAAAAAAAAAAAC- -A------------C- -A------------C- -A------------C- -B------------B- 
+-BAAAAAAAAAAAAB- -CAAAAAAAAAAAAA- -C------------A- -C------------A- -C------------A- -B------------B- 
+-BAAAAAAAAAAAAB- -AAAAAAAAAAAAAC- -A------------C- -A------------C- -A------------C- -B------------B- 
+-BAAAAAAAAAAAAB- -CAAAAAAAAAAAAA- -C------------A- -C------------A- -C------------A- -B------------B- 
+-BAAAAAAAAAAAAB- -AAAAAAAAAAAAAC- -A------------C- -A------------C- -A------------C- -B------------B- 
+BBBBBBBBBBBBBBBB -BCACACACACACAB- -BCACACACACACAB- -BCACACACACACAB- -BCACACACACACAB- BBBBBBBBBBBBBBBB 
+BB------------BB ---------------- ---------------- ---------------- ---------------- BB------------BB 

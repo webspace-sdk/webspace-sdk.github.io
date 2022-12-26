@@ -1,0 +1,11 @@
+model
+name = door
+size = 14 29 3
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#C97373 B:#A6555F C:#7B5480 D:#4A3052 E:#A6859F
+voxels
+-------------- -------------- -------------- -------------- -------------- -------------C ------------EE -DCCCCCCCCCCD- -DCCCCCCCCCCD- ------------EE -------------C -------------- -------------- -------------- -D------------ -CC----------- -------------- -------------- -------------C ------------EE -DCCCCCCCCCCD- -DCCCCCCCCCCD- ------------EE -------------C -------------- -------------- -------------- -------------- -------------- 
+BBBBBBBBBBBBBB BAAABBBABABAAB BABABAAAAABAAB BABABAAABABABB BABAABAABAAAAB BBAAAAAABAAABA BBBBBBBBBBBBAA BAAAAAAAAAAAAB BAAAAAAAAAAAAB BBAAAAABAAAAAA BBAABAABAABABA BAAABAAAAAAABB BABABABAAABABB BBAABAAABABABB BCBABAAAAABAAB BCCAAABAAABAAB BABAAABBAABABB BABABABBAAAAAB BAAAAABAAABABA BBBBBBBBBBBBAA BAAAAAAAAAAAAB BAAAAAAAAAAAAB BBAAAAAABBAAAA BBBABABAABAAAA BBAABAAAAAAABB -BAABAABAABAB- -BBAAAABAABAB- --BBABABAABB-- ----BBBBBB---- 
+-------------- -------------- -------------- -------------- -------------- -------------C ------------EE -DCCCCCCCCCCD- -DCCCCCCCCCCD- ------------EE -------------C -------------- -------------- -------------- -D------------ -CC----------- -------------- -------------- -------------C ------------EE -DCCCCCCCCCCD- -DCCCCCCCCCCD- ------------EE -------------C -------------- -------------- -------------- -------------- -------------- 

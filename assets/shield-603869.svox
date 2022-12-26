@@ -1,0 +1,11 @@
+model
+name = shield
+size = 16 16 3
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#C97373 B:#A6859F C:#A6555F D:#7B5480
+voxels
+---------------- ------CCCC------ -----CAAAAC----- ----CCAACACC---- ---CACAAAACAC--- ---AACAACACAC--- --CAAAAACAAAAC-- --AAACAACACACA-- -CACACAACACACAC- -AACACAAAACAAAA- -AACACAACACACAA- -AAAACAACAAACAA- -AACAAAACACACAA- -AACACAAAACACAA- -CACACAACACAAAC- ---------------- 
+------BBBB------ -----BB--BB----- ----BB----BB---- ---BB------BB--- --BB--------BB-- --B----------B-- -BB----------BB- -B--D------D--B- BB------------BB B--------------B B--------------B B---D------D---B B--------------B B--------------B BB------------BB -BBBBBBBBBBBBBB- 
+---------------- ---------------- ---------------- ---------------- ---------------- ---------------- ---------------- ----D------D---- ----D------D---- ----D------D---- ----D------D---- ----D------D---- ---------------- ---------------- ---------------- ---------------- 

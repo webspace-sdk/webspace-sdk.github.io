@@ -1,0 +1,9 @@
+model
+name = pillar
+size = 6 32 6
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#A6859F B:#7B5480 C:#D9BDC8
+voxels
+2B2A2B180-2B2A3B4AB-A2CA170-A2CA-B4AB6A-C2AC3-2B26(4-2A)4-2B3-C2AC-12A-C2AC3-2B26(4-2A)4-2B3-C2AC-6AB4AB-A2CA170-A2CA-B4A3B2A2B180-2B2A2B

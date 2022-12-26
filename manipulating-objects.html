@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Manipulating Objects</title>
+    <script src="https://webspace.run"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="black" />
+    <style>
+      body * {
+        display: none;
+      }
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #061139;
+      }
+    </style>
+    <meta name="webspace.keys.owner" content="eyJjcnYiOiJQLTI1NiIsImV4dCI6dHJ1ZSwia2V5X29wcyI6WyJ2ZXJpZnkiXSwia3R5IjoiRUMiLCJ4IjoicHVDZlhHMWdtNktiaE51dzRhd3VuN2ZHQTB0SEktbzhGZVNnTXpHOVFINCIsInkiOiJfUkp0eG5YVWVwemlkdGcwMXpXcjJTOGdRSFFEdVhodnNkdDV1OEdXMFk4IiwiaHViX2lkIjoiRUxoUnFkVko4dHFnVm04QiJ9" />
+    <meta name="webspace.environment.type" content="terrain" />
+    <meta name="webspace.environment.terrain.colors.ground" content="#1D1D1D" />
+    <meta name="webspace.environment.terrain.colors.edge" content="#1E1000" />
+    <meta name="webspace.environment.terrain.colors.leaves" content="#0059B1" />
+    <meta name="webspace.environment.terrain.colors.bark" content="#05050A" />
+    <meta name="webspace.environment.terrain.colors.rock" content="#303048" />
+    <meta name="webspace.environment.terrain.colors.grass" content="#000000" />
+    <meta name="webspace.environment.terrain.colors.sky" content="#2C2C2C" />
+    <meta name="webspace.environment.terrain.colors.water" content="#1771CA" />
+    <meta name="webspace.environment.terrain.type" content="flat" />
+    <meta name="webspace.environment.terrain.seed" content="99" />
+  </head>
+  <body>
+    <model id="4a17v3x" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-1085cm, 511cm, -1799cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="47tzuwn" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-628cm, 511cm, -1799cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="2s0e9fu" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-170cm, 511cm, -1799cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="nycxgo6" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(288cm, 511cm, -1799cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="9w9rz7w" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(745cm, 511cm, -1799cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="qd2qf7e" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(1203cm, 511cm, -1799cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="0fbbw26" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(2001cm, 511cm, -1571cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); " draggable=""></model>
+    <model id="jfefz30" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(1401cm, 511cm, -1114cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="9zng0yo" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(1401cm, 511cm, -656cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="mcmwb0u" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(1401cm, 511cm, -198cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="pa8e8r4" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(1203cm, 511cm, 3cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="ndvt4uj" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(745cm, 511cm, 3cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="ks51x30" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(288cm, 511cm, 3cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="pnrh6g1" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-170cm, 511cm, 3cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="z5pvsml" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-628cm, 511cm, 3cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="lamfpvv" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-1085cm, 511cm, 3cm) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="vk4jmhv" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(1401cm, 511cm, -1571cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="8ua6zz3" type="model/vnd.svox" src="assets/wall_raised-997238.svox" draggable="" style="transform: translate3d(1486cm, 511cm, -1571cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="qrc4w9f" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-1238cm, 511cm, -1571cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="0rpcvou" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-1238cm, 511cm, -1114cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="rh69wbd" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-1238cm, 511cm, -656cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="2bnpu0d" type="model/vnd.svox" src="assets/wall_raised-997238.svox" style="transform: translate3d(-1238cm, 511cm, -256cm) rotate3d(0.000, -1.000, 0.000, 1.571rad) scale3d(2.29, 2.29, 2.29); "></model>
+    <model id="u23h7zl" type="model/vnd.svox" src="assets/tile_flat-818592.svox" style="transform: translate3d(-790cm, 1013cm, -378cm) rotate3d(0.707, 0.000, -0.707, 3.142rad) scale3d(4.61, 4.61, 4.61); "></model>
+    <model id="97imlu7" type="model/vnd.svox" src="assets/tile_flat-818592.svox" style="transform: translate3d(16cm, 1013cm, -1241cm) rotate3d(0.707, 0.000, -0.707, 3.142rad) scale3d(4.61, 4.61, 4.61); "></model>
+    <model id="98ccevy" type="model/vnd.svox" src="assets/tile_flat-818592.svox" style="transform: translate3d(-790cm, 1013cm, -1241cm) rotate3d(0.707, 0.000, -0.707, 3.142rad) scale3d(4.61, 4.61, 4.61); "></model>
+    <model id="0l1t8zm" type="model/vnd.svox" src="assets/tile_flat-818592.svox" style="transform: translate3d(16cm, 1013cm, -378cm) rotate3d(0.707, 0.000, -0.707, 3.142rad) scale3d(4.61, 4.61, 4.61); "></model>
+    <model id="ihzt6e7" type="model/vnd.svox" src="assets/tile_flat-818592.svox" style="transform: translate3d(937cm, 1013cm, -378cm) rotate3d(0.707, 0.000, -0.707, 3.142rad) scale3d(4.61, 4.61, 4.61); "></model>
+    <model id="swaxr39" type="model/vnd.svox" src="assets/tile_flat-818592.svox" style="transform: translate3d(937cm, 1023cm, -1241cm) rotate3d(0.707, 0.000, -0.707, 3.142rad) scale3d(4.61, 4.61, 4.61); "></model>
+    <model id="aur2ho9" type="model/vnd.svox" src="assets/torch-832064.svox" style="transform: translate3d(908cm, 470cm, -1697cm) scale3d(1.63, 1.63, 1.63); " data-stack-axis="forward"></model>
+    <model id="bvxhtpr" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(684cm, 470cm, -1697cm) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="4m6k9fa" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(461cm, 470cm, -1697cm) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="9fco9q2" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(258cm, 470cm, -1697cm) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="4yqbp2j" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(34cm, 470cm, -1697cm) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="2rbl4ka" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(-169cm, 470cm, -1697cm) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="ybg6raj" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(949cm, 491cm, -72cm) rotate3d(0.000, 1.000, 0.000, 3.142rad) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="3wrtaav" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(664cm, 491cm, -72cm) rotate3d(0.000, 1.000, 0.000, 3.142rad) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="z4tayka" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(389cm, 491cm, -72cm) rotate3d(0.000, 1.000, 0.000, 3.142rad) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="5x3v6fy" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(145cm, 491cm, -72cm) rotate3d(0.000, 1.000, 0.000, 3.142rad) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="543yyyv" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(-78cm, 491cm, -72cm) rotate3d(0.000, 1.000, 0.000, 3.142rad) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="mkzi41e" type="model/vnd.svox" src="assets/torch-832064.svox" data-stack-axis="forward" style="transform: translate3d(-281cm, 491cm, -72cm) rotate3d(0.000, 1.000, 0.000, 3.142rad) scale3d(1.63, 1.63, 1.63); "></model>
+    <model id="zo7cjlt" type="model/vnd.svox" src="assets/table_fancy_2x3-593116.svox" style="transform: translate3d(746cm, 127cm, -1237cm) rotate3d(0.000, -1.000, 0.000, 0.785rad) scale3d(0.53, 0.53, 0.53); "></model>
+    <model id="yacdehw" type="model/vnd.svox" src="assets/table_fancy_2x3-593116.svox" style="transform: translate3d(840cm, 127cm, -450cm) rotate3d(0.000, 1.000, 0.000, 0.393rad) scale3d(0.53, 0.53, 0.53); "></model>
+    <model id="zl6bq7t" type="model/vnd.svox" src="assets/sword-169701.svox" style="transform: translate3d(1321cm, 441cm, -927cm) rotate3d(-0.357, -0.863, 0.357, 1.718rad) scale3d(1.87, 1.87, 1.87); " data-stack-axis="forward"></model>
+    <model id="lfpeoac" type="model/vnd.svox" src="assets/sword-169701.svox" data-stack-axis="forward" style="transform: translate3d(1321cm, 464cm, -750cm) rotate3d(0.357, -0.863, -0.357, 1.718rad) scale3d(1.87, 1.87, 1.87); "></model>
+    <model id="vjokgg1" type="model/vnd.svox" src="assets/knight_statue-724648.svox" style="transform: translate3d(-892cm, 327cm, -304cm) rotate3d(0.000, -1.000, 0.000, 0.785rad) scale3d(1.42, 1.42, 1.42); "></model>
+    <model id="3g8bl41" type="model/vnd.svox" src="assets/bookshelf-321262.svox" style="transform: translate3d(-858cm, 293cm, -1500cm) rotate3d(0.000, 1.000, 0.000, 3.927rad) scale3d(1.14, 1.14, 1.14); "></model>
+    <model id="drbb0bu" type="model/vnd.svox" src="assets/chest-337156.svox" style="transform: translate3d(1023cm, 110cm, -994cm) rotate3d(0.000, -1.000, 0.000, 0.393rad) scale3d(1.12, 1.12, 1.12); "></model>
+    <model id="0bwh2ef" type="model/vnd.svox" src="assets/chest-337156.svox" style="transform: translate3d(884cm, 107cm, -744cm) rotate3d(0.000, 1.000, 0.000, 1.178rad) scale3d(1.12, 1.12, 1.12); "></model>
+    <model id="mc61z5i" type="model/vnd.svox" src="assets/pillar-802703.svox" style="transform: translate3d(-1124cm, 457cm, -524cm) scale3d(2.00, 2.00, 2.00); "></model>
+    <model id="ebrjnoq" type="model/vnd.svox" src="assets/pillar-802703.svox" style="transform: translate3d(-1099cm, 457cm, -1249cm) scale3d(2.00, 2.00, 2.00); "></model>
+    <model id="9ykpwd5" type="model/vnd.svox" src="assets/book_red-485525.svox" style="transform: translate3d(-999cm, 235cm, -1394cm) rotate3d(0.000, -1.000, 0.000, 1.963rad); "></model>
+    <model id="ethxdhp" type="model/vnd.svox" src="assets/book_red-485525.svox" style="transform: translate3d(-955cm, 235cm, -1438cm) rotate3d(0.000, -1.000, 0.000, 1.963rad); "></model>
+    <model id="2xh9mol" type="model/vnd.svox" src="assets/bench-651263.svox" style="transform: translate3d(-109cm, 157cm, -243cm) scale3d(1.54, 1.54, 1.54); "></model>
+    <model id="tz3mpiy" type="model/vnd.svox" src="assets/chair-983692.svox" style="transform: translate3d(396cm, 180cm, -1503cm) rotate3d(0.000, 1.000, 0.000, 3.142rad) scale3d(0.77, 0.77, 0.77); "></model>
+    <model id="o5hu86u" type="model/vnd.svox" src="assets/chair-983692.svox" style="transform: translate3d(551cm, 180cm, -1445cm) rotate3d(0.000, 1.000, 0.000, 2.356rad) scale3d(0.77, 0.77, 0.77); "></model>
+    <model id="2g3ndb1" type="model/vnd.svox" src="assets/chair-983692.svox" style="transform: translate3d(193cm, 180cm, -1465cm) rotate3d(0.000, 1.000, 0.000, 3.927rad) scale3d(0.77, 0.77, 0.77); "></model><video id="qtpk0y5" controls="" preload="none" autoplay="" loop="" src="https://www.youtube.com/watch?v=5F5dgg1eeGE" draggable="" style="transform: translate3d(-68cm, 975cm, -1135cm) rotate3d(-0.327, 0.943, 0.067, 0.429rad); "></video>
+    <model id="76sqlst" type="model/vnd.svox" src="assets/door-709133.svox" style="transform: translate3d(-1192cm, 391cm, -920cm) rotate3d(-0.003, -1.000, 0.000, 1.568rad) scale3d(1.81, 1.81, 1.81); "></model>
+    <model id="ein8jpi" type="model/vnd.svox" src="assets/table_fancy_2x3-101528.svox" style="transform: translate3d(-581cm, -86cm, -924cm) scale3d(1.46, 1.46, 1.46); "></model>
+    <model id="s65l08c" type="model/vnd.svox" src="assets/table_fancy_2x3-101528.svox" draggable="" style="transform: translate3d(-581cm, -86cm, -924cm) scale3d(1.46, 1.46, 1.46); "></model>
+    <model id="2h290f5" type="model/vnd.svox" src="assets/table_fancy_2x3-101528.svox" style="transform: translate3d(588cm, -86cm, -924cm) scale3d(1.46, 1.46, 1.46); "></model>
+    <model id="vewq8dk" type="model/vnd.svox" src="assets/shield-603869.svox" style="transform: translate3d(1288cm, 640cm, -824cm) rotate3d(0.002, 1.000, 0.000, 1.533rad) scale3d(1.30, 1.30, 1.30); " data-stack-axis="backward"></model>
+    <model id="vfywp9l" type="model/vnd.svox" src="file:///C:/Users/gfodo/Documents/webspace-sdk.github.io/assets/simple-cube.svox" draggable="" style="transform: translate3d(-289cm, 76cm, -1170cm) rotate3d(0.000, -1.000, 0.000, 0.785rad) scale3d(0.44, 0.44, 0.44); "></model>
+    <model id="o1oyfjd" type="model/vnd.svox" src="file:///C:/Users/gfodo/Documents/webspace-sdk.github.io/assets/simple-cube.svox" draggable="" style="transform: translate3d(-294cm, 76cm, -1355cm) scale3d(0.44, 0.44, 0.44); "></model>
+    <model id="s0f1nbl" type="model/vnd.svox" src="file:///C:/Users/gfodo/Documents/webspace-sdk.github.io/assets/simple-cube.svox" draggable="" style="transform: translate3d(-126cm, 76cm, -1181cm) scale3d(0.44, 0.44, 0.44); "></model>
+    <model id="avos5sm" type="model/vnd.svox" src="file:///C:/Users/gfodo/Documents/webspace-sdk.github.io/assets/simple-cube.svox" draggable="" style="transform: translate3d(-66cm, 76cm, -1361cm) rotate3d(0.000, 1.000, 0.000, 0.785rad) scale3d(0.44, 0.44, 0.44); "></model>
+    <model id="3yessnx" type="model/vnd.svox" src="file:///C:/Users/gfodo/Documents/webspace-sdk.github.io/assets/simple-cube.svox" draggable="" style="transform: translate3d(-270cm, 192cm, -1174cm) scale3d(0.44, 0.44, 0.44); "></model><label id="jmxpyh7" contenteditable="" style="color: #c2d7ff; width: min-content; height: min-content; background-color: #530070; font-family: sans-serif; transform: translate3d(-637cm, 316cm, -1019cm) rotate3d(-0.272, 0.959, 0.078, 0.607rad) scale3d(1.97, 1.97, 1.97); ">
+      <h1>Here's a little staging area to play around with manipulating objects.</h1>
+      <p><br /></p>
+      <h1>Try moving these cubes<span style="color: rgb(0, 0, 0); background-color: transparent;">🧊</span>snapping them to walls, etc.</h1>
+      <p><br /></p>
+    </label><label id="mufj37u" contenteditable="" style="color: #ffa471; width: min-content; height: min-content; background-color: #3a1c00; font-family: sans-serif; transform: translate3d(349cm, 316cm, -1143cm) rotate3d(-0.485, -0.864, -0.138, 0.665rad) scale3d(2.18, 2.18, 2.18); ">
+      <h1>Things to try:</h1>
+      <ol>
+        <li>Hold space while moving an object to snap to floor</li>
+        <ol>
+          <li>While snapping, hit Q/E to rotate, T/G to reorient</li>
+        </ol>
+        <li>While moving an object:</li>
+        <ol>
+          <li>Hold <strong>1, 2, 3</strong> to move along object X, Y, Z</li>
+          <li>Hold <strong>Q </strong>to move along World X, Z</li>
+          <li>Hold <strong>E</strong> to move along World Y</li>
+        </ol>
+        <li>Hold <strong>Control</strong> and drag object to clone it, or hover and hit <strong>C</strong></li>
+      </ol>
+    </label>
+  </body>
+</html>

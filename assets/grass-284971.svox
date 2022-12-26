@@ -1,0 +1,12 @@
+model
+name = grass
+size = 4 3 4
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#5BA675 B:#ABDD64 C:#6BC96C
+voxels
+A--A B--B ---B 
+--A- ---- ---- 
+A--- B--- B--- 
+-A-A ---C ---- 

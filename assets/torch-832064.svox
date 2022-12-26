@@ -1,0 +1,13 @@
+model
+name = torch
+size = 3 13 5
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#A6859F B:#7B5480 C:#C97373 D:#A6555F
+voxels
+--- --- --- --- --- AAA AAA AAA --- --- --- --- --- 
+--- --- --- --- --- --- -B- --- --- --- --- --- --- 
+--- --- --- --- --- -B- AAA --- --- --- AAA ABA A-A 
+-C- -C- -C- -C- -C- BCB ACA -C- -C- -D- ABA B-B --- 
+--- --- --- --- --- -B- AAA --- --- --- AAA ABA A-A 

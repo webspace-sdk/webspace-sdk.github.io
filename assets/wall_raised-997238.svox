@@ -1,0 +1,12 @@
+model
+name = wall_raised
+size = 16 32 3
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#4A3052 B:#7B5480 C:#1F102A
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+16C6(7A-)2(B6A-)7B-7B17-3A4(-7A)-B6A-B3A3B-7B-4B17-4(7A-)2(B6A-)7B-7B16-4A4(-7A)-B6A-B2A4B-7B-3B16-4(7A-)2(B6A-)7B-7B17-3A4(-7A)-B6A-B3A3B-7B-4B32C6(7AC)2(B6AC)7BC7B17C3A4(C7A)CB6ACB3A3BC7BC4B17C4(7AC)2(B6AC)7BC7B16C4A4(C7A)CB6ACB2A4BC7BC3B16C4(7AC)2(B6AC)7BC7B17C3A4(C7A)CB6ACB3A3BC7BC4B32C6(7A-)2(B6A-)7B-7B17-3A4(-7A)-B6A-B3A3B-7B-4B17-4(7A-)2(B6A-)7B-7B16-4A4(-7A)-B6A-B2A4B-7B-3B16-4(7A-)2(B6A-)7B-7B17-3A4(-7A)-B6A-B3A3B-7B-4B16C
