@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 — Getting Started as a Developer — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li class="current"><a href="03-getting-started.html" aria-current="page"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="03-—-getting-started-as-a-developer">03 — Getting Started as a Developer</h1>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Node.js (the repo&#39;s <code>.tool-versions</code> pins the intended version; the toolchain is webpack 5 /
+Babel-era, so a Node from that period — 16/18 — is the safe choice).</li>
+<li>Chrome (the engine targets last-2 Chrome/Firefox; Chrome is the primary target, and the
+File System Access API used for local writeback is Chrome-only).</li>
+<li>The GitHub-pinned dependencies (see <a href="02-repo-layout.html">02</a>) must still resolve for <code>npm ci</code>.</li>
+</ul>
+<h2 id="run-the-engine-locally">Run the engine locally</h2>
+<pre><code class="hljs language-bash"><span class="hljs-built_in">cd</span> webspace-engine
+npm ci
+npm run <span class="hljs-built_in">local</span>        <span class="hljs-comment"># webpack-dev-server on http://localhost:8080</span>
+</code></pre>
+<p>Then create a world: save this as <code>index.html</code> in some new folder —</p>
+<pre><code class="hljs language-html"><span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;http://localhost:8080/assets/js/index.js&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
+</code></pre>
+<p>— and open it in Chrome via <strong>File → Open</strong>. You get an empty 3D world backed by that file. Because
+it&#39;s a <code>file:</code> URL, the engine offers <strong>local writeback</strong>: grant it access to the folder and your
+in-world edits are saved into the HTML file itself. Open the file in an editor afterward to see the
+world you built as markup.</p>
+<p>Against production instead of a local build, use <code>&lt;script src=&quot;https://webspace.run&quot;&gt;&lt;/script&gt;</code>
+(that URL serves <code>webspace-latest.js</code> from the S3 bucket — see <a href="25-build-deploy.html">25</a>).</p>
+<h2 id="everyday-commands">Everyday commands</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm run local</code></td>
+<td>Dev server with HMR at <code>0.0.0.0:8080</code></td>
+</tr>
+<tr>
+<td><code>npm run build</code></td>
+<td>Production bundle to <code>dist/assets/js/index.js</code></td>
+</tr>
+<tr>
+<td><code>npm run test</code></td>
+<td>lint + unit tests (ava, <code>test/unit</code>) + build</td>
+</tr>
+<tr>
+<td><code>npm run test:unit</code></td>
+<td>ava only</td>
+</tr>
+<tr>
+<td><code>npm run storybook</code></td>
+<td>React component gallery on port 6006</td>
+</tr>
+<tr>
+<td><code>npm run bundle-analyzer</code></td>
+<td>Bundle size inspection</td>
+</tr>
+<tr>
+<td><code>npm run deploy</code></td>
+<td>Build + upload to <code>s3://webspace.run/webspace-latest.js</code> (needs AWS creds)</td>
+</tr>
+<tr>
+<td><code>npm run spritesheet</code></td>
+<td>Regenerate UI sprite sheets from <code>src/assets/images/sprites/</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="using-a-world-user-level-crash-course">Using a world (user-level crash course)</h2>
+<p>Once in a world (these are taught interactively by the tutorial worlds on webspaces.space):</p>
+<ul>
+<li><strong>Move</strong>: WASD; mouse-drag to look, Shift toggles mouse lock; Space jumps; hold Space to fire the
+equipped emoji. Mobile: pinch to move, drag to look.</li>
+<li><strong>Create</strong>: press <code>/</code> to open the create menu (text, images by URL, video/YouTube, GLB models,
+.svox voxel models, emoji…). Paste (Ctrl-V) and drag-drop also work.</li>
+<li><strong>Manipulate</strong>: right-click-drag moves an object (or TAB for move mode); while moving, Space snaps
+to floor, Q/E rotate, T/G reorient, 1/2/3 constrain to the object&#39;s X/Y/Z axes. Ctrl-drag or
+hover+C clones. L unlocks a locked object. <code>~</code> opens the voxel editor on a voxel object. V paints
+voxels with the brush.</li>
+<li><strong>Modes</strong>: the right panel toggles <strong>Launcher</strong> (emoji blaster + presence list) vs <strong>Builder</strong>
+(voxel brush tools). Text objects are edited by clicking them (Quill inline).</li>
+<li><strong>Persist</strong>: the top bar&#39;s writeback dialog connects the world to its origin — automatic for
+<code>file:</code> worlds (directory picker), or GitHub via fine-grained personal access token with
+<strong>Contents</strong> permission on just that repo (walkthrough: <code>webspace-engine/github-writeback.md</code>).</li>
+</ul>
+<h2 id="repo-entry-points-for-reading-code">Repo entry points for reading code</h2>
+<p>Start with these, in order:</p>
+<ol>
+<li><code>src/index.js</code> — bootstrap; read alongside <a href="05-boot-sequence.html">05 — Boot sequence</a>.</li>
+<li><code>src/aframe-dom.js</code> — the entire scene skeleton in one string.</li>
+<li><code>src/utils/world-importer.js</code> — HTML → entities.</li>
+<li><code>src/systems/hubs-systems.js</code> — the frame loop and every system&#39;s tick order.</li>
+<li><code>src/systems/dom-serialize-system.js</code> — entities → HTML (the return trip).</li>
+<li><code>src/utils/atom-access-manager.js</code> — permissions + writeback orchestration.</li>
+</ol>
+<h2 id="gotchas">Gotchas</h2>
+<ul>
+<li><strong>Shadow DOM everywhere</strong>: the page you inspect in devtools is the <em>document</em>; the running world
+and UI live in the shadow root on <code>&lt;body&gt;</code> (<code>window.DOM_ROOT</code>). A-Frame selectors are re-rooted
+via <code>AFRAME.selectorRoot</code>.</li>
+<li><strong><code>THREE.Object3D.DefaultMatrixAutoUpdate = false</code></strong> globally. If an object isn&#39;t where you put it,
+you probably didn&#39;t update its matrix.</li>
+<li><strong>Determinism matters</strong>: object IDs derive from content hashes with a seeded RNG. Don&#39;t casually
+reorder element serialization or ID generation.</li>
+<li><strong>The scene hard-pauses on tab blur</strong> (with debounce); systems that must keep running while paused
+are ticked by a separate interval in <code>hubs-systems.js</code>.</li>
+<li><strong>COEP/SharedArrayBuffer</strong>: on HTTP(S) hosts, <code>webspace.service.js</code> (service worker) must sit next
+to the HTML to enable SharedArrayBuffer (lip sync, WASM threads). Without it those features
+silently degrade.</li>
+</ul>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="02-repo-layout.html"><span class="pn-dir">← Previous</span><span class="pn-title">02 — Repository Layout</span></a>
+      <a class="pn-next" href="04-architecture-overview.html"><span class="pn-dir">Next →</span><span class="pn-title">04 — Architecture Overview</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

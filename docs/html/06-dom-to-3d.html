@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>06 — The DOM ↔ 3D Mapping &amp; Webspace Document Format — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li class="current"><a href="06-dom-to-3d.html" aria-current="page"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="06-—-the-dom-↔-3d-mapping--webspace-document-format">06 — The DOM ↔ 3D Mapping &amp; Webspace Document Format</h1>
+<p>The defining feature of Webspaces: HTML in, HTML out. This doc covers both directions and the
+document format itself.</p>
+<h2 id="a-complete-webspace-document">A complete webspace document</h2>
+<pre><code class="hljs language-html"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span> /&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;viewport&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot;</span> /&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://webspace.run&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+  <span class="hljs-comment">&lt;!-- Environment --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.type&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;terrain&quot;</span> /&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.terrain.type&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;plains&quot;</span> /&gt;</span>   <span class="hljs-comment">&lt;!-- plains|hills|islands|flat --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.terrain.seed&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;117&quot;</span> /&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.terrain.colors.ground&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;#041223&quot;</span> /&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.terrain.colors.sky&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;#535F6E&quot;</span> /&gt;</span>
+  <span class="hljs-comment">&lt;!-- also: water, grass, rock, bark, leaves, edge --&gt;</span>
+
+  <span class="hljs-comment">&lt;!-- Spawn point --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.spawn_point.transform&quot;</span>
+        <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;translate3d(-1157cm, 126cm, -578cm) rotate3d(-0.029, 0.997, -0.070, 3.919rad)&quot;</span> /&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.spawn_point.radius&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;0&quot;</span> /&gt;</span>
+
+  <span class="hljs-comment">&lt;!-- Page vs world --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.projection.type&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;flat&quot;</span> /&gt;</span>   <span class="hljs-comment">&lt;!-- omit/spatial for 3D --&gt;</span>
+
+  <span class="hljs-comment">&lt;!-- Ownership &amp; permissions --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.keys.owner&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;eyJjcnY...&quot;</span> /&gt;</span>              <span class="hljs-comment">&lt;!-- base64 JWK public key --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.permissions.content_change_role&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;owner&quot;</span> /&gt;</span> <span class="hljs-comment">&lt;!-- owner|member --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.permissions.save_changes_to_origin&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;true&quot;</span> /&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">style</span>&gt;</span><span class="language-css">
+    <span class="hljs-selector-tag">body</span> * { <span class="hljs-attribute">display</span>: none; }               <span class="hljs-comment">/* hide raw DOM; engine renders via canvas */</span>
+    <span class="hljs-selector-tag">body</span> { <span class="hljs-attribute">margin</span>: <span class="hljs-number">0</span>; <span class="hljs-attribute">overflow</span>: hidden; <span class="hljs-attribute">background-color</span>: <span class="hljs-number">#061139</span>; }
+  </span><span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- world objects go here (see below) --&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
+</code></pre>
+<p>The <code>body * { display: none }</code> style makes the file degrade gracefully: without the engine you see a
+blank page rather than a soup of raw elements; with it, the shadow root takes over rendering anyway.</p>
+<h2 id="body-elements-→-world-objects">Body elements → world objects</h2>
+<p>Each direct child of <code>&lt;body&gt;</code> with a valid 7-char ID becomes one networked entity. The element&#39;s tag
+and attributes select the media type; its inline <code>style</code> <code>transform</code> gives it a spatial pose.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Markup</th>
+<th>In-world object</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;img src=&quot;…&quot;&gt;</code></td>
+<td>Textured plane (aspect preserved); GIF/WebP animated</td>
+</tr>
+<tr>
+<td><code>&lt;video src=&quot;…&quot;&gt;</code></td>
+<td>Video screen with controls; YouTube URLs resolve via youtubei.js; HLS/DASH streams supported</td>
+</tr>
+<tr>
+<td><code>&lt;audio&gt;</code></td>
+<td>Positional audio source with speaker icon</td>
+</tr>
+<tr>
+<td><code>&lt;embed&gt;</code> (PDF)</td>
+<td>Paged PDF viewer with hover pager</td>
+</tr>
+<tr>
+<td><code>&lt;model type=&quot;model/vnd.svox&quot; src=&quot;x.svox&quot;&gt;</code></td>
+<td>Smooth-voxel model (editable in-world with <code>~</code>)</td>
+</tr>
+<tr>
+<td><code>&lt;model type=&quot;model/gltf-binary&quot; src=&quot;x.glb&quot;&gt;</code></td>
+<td>glTF model (Draco supported)</td>
+</tr>
+<tr>
+<td><code>&lt;label contenteditable&gt;…&lt;/label&gt;</code></td>
+<td>Editable rich-text page/label (Quill; <code>&lt;h1&gt;</code> etc. inside)</td>
+</tr>
+<tr>
+<td><code>&lt;marquee&gt;</code></td>
+<td>Banner text variant</td>
+</tr>
+<tr>
+<td><code>&lt;div style=&quot;font-family: emoji&quot;&gt;🖱&lt;/div&gt;</code></td>
+<td>3D voxelized emoji (voxmoji)</td>
+</tr>
+<tr>
+<td><code>&lt;a href&gt;</code></td>
+<td>Linked media / navigable link object</td>
+</tr>
+</tbody></table></div>
+<h3 id="attributes-that-matter">Attributes that matter</h3>
+<ul>
+<li><code>id=&quot;abc1234&quot;</code> — 7-char deterministic ID (see below). Required for networking.</li>
+<li><code>draggable=&quot;&quot;</code> — object can be grabbed/moved in-world.</li>
+<li><code>contenteditable=&quot;&quot;</code> — text is editable in-world.</li>
+<li><code>loading=&quot;lazy&quot;</code> — hint kept on images.</li>
+<li><code>data-stack-axis=&quot;forward|…&quot;</code> — snap-stacking orientation (todo.txt flags this attribute&#39;s
+DOM-vs-file duality as an unresolved design question).</li>
+<li>style properties: <code>color</code>, <code>background-color</code>, <code>font-family</code> (maps to the engine&#39;s font set:
+sans-serif/serif/mono/comic/writing/emoji…), <code>-webkit-text-stroke*</code> for outlines.</li>
+</ul>
+<h3 id="the-transform-convention">The transform convention</h3>
+<p>CSS transforms are the pose format, parsed by <code>src/utils/world-importer.js:37–73</code> and written back by
+<code>src/systems/dom-serialize-system.js</code>:</p>
+<pre><code class="hljs">transform: translate3d(Xcm, Ycm, Zcm) rotate3d(ax, ay, az, THETArad) scale3d(sx, sy, sz)
+</code></pre>
+<ul>
+<li><strong>centimeters → meters ÷ 100</strong> (cm chosen so file values are readable integers).</li>
+<li><code>rotate3d</code> is axis-angle in radians.</li>
+<li>Serialization always emits this canonical three-function form.</li>
+</ul>
+<h2 id="import-html-→-entities-srcutilsworld-importerjs">Import: HTML → entities (<code>src/utils/world-importer.js</code>)</h2>
+<ol>
+<li>Boot captured <code>document.body.innerHTML</code> (see <a href="05-boot-sequence.html">05</a>).</li>
+<li><code>DOMParser</code> parses it; each qualifying body child is wrapped in an A-Frame entity stamped from a
+NAF template — <code>#interactable-media</code> for editable objects, <code>#static-media</code>/
+<code>#static-controlled-media</code> for immutable ones — carrying the standard component stack:
+<code>media-loader</code>, <code>body-helper</code> (physics), <code>floaty-object</code>, <code>hoverable-visuals</code>, <code>tags</code>,
+<code>wrapped-entity</code>, <code>dom-serialized-entity</code>, <code>listed-media</code>, <code>set-yxz-order</code> (canonical Euler order).</li>
+<li><code>media-loader</code> then resolves the <code>src</code> and attaches the type-specific view component
+(<a href="09-media-pipeline.html">09 — media pipeline</a>).</li>
+<li>NAF is paused during import and resumed after, then <code>document-imported</code> state is added.</li>
+</ol>
+<h3 id="deterministic-ids-srcindexjs827–867">Deterministic IDs (<code>src/index.js:827–867</code>)</h3>
+<pre><code class="hljs language-js">hash = <span class="hljs-variable constant_">SHA</span>-<span class="hljs-number">256</span>(el.<span class="hljs-property">outerHTML</span> + index)
+id   = <span class="hljs-number">7</span> alphanumeric chars <span class="hljs-keyword">from</span> <span class="hljs-title function_">seedrandom</span>(hash)
+</code></pre>
+<p>Same file → same IDs on every client → NAF network IDs (<code>naf-abc1234</code>) agree everywhere with no
+coordination. This is why the engine seeds its RNG at boot and why serialization must stay canonical.</p>
+<h2 id="export-entities-→-html-srcsystemsdom-serialize-systemjs">Export: entities → HTML (<code>src/systems/dom-serialize-system.js</code>)</h2>
+<p>Runs continuously (including via the paused-mode self-tick). For each entity with
+<code>dom-serialized-entity</code>:</p>
+<ul>
+<li>Chooses the output tag from the media component: image→<code>img</code>/<code>a</code>, pdf→<code>embed</code>, vox→<code>model</code>,
+emoji→<code>div</code>, text→<code>label</code>/<code>marquee</code>/<code>div</code>, video→<code>video</code>.</li>
+<li>Writes pose via <code>posRotScaleToCssTransform()</code> in the cm/rad canonical form.</li>
+<li>Maintains a dirty list; flushes on tick to avoid mutation storms.</li>
+</ul>
+<p>The serialized light DOM is what the writeback system persists (<a href="12-writeback.html">12</a>) and what
+<code>update_nav</code>/full-HTML broadcasts share with peers.</p>
+<h2 id="head-metadata-flows">Head metadata flows</h2>
+<p>Hub (world) metadata lives in the same document&#39;s meta tags and is read by
+<code>LocalDOMHubMetadataSource</code>; space metadata (the world tree / navigation) is parsed out of the
+<em>index</em> document by <code>IndexDOMSpaceMetadataSource</code> and rebuilt on <code>update_nav</code> broadcasts
+(<code>doc/meta-dataflow.txt</code> sketches both flows; details in <a href="13-collaborative-editing.html">13</a>).</p>
+<h2 id="flat-projection">Flat projection</h2>
+<p><code>webspace.projection.type = flat</code> renders the document as a 2D page (orthographic camera, page-like
+UI) while remaining the same engine and the same multiplayer document — a wiki page and a 3D world
+are the same file format. Worlds and pages can link to each other with plain <code>&lt;a&gt;</code> tags.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="05-boot-sequence.html"><span class="pn-dir">← Previous</span><span class="pn-title">05 — Boot Sequence: From &lt;script&gt; Tag to Enterable World</span></a>
+      <a class="pn-next" href="07-systems.html"><span class="pn-dir">Next →</span><span class="pn-title">07 — Systems Inventory</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

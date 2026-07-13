@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Webspaces Documentation — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li class="current"><a href="index.html" aria-current="page">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="webspaces-documentation">Webspaces Documentation</h1>
+<p>This folder is the onboarding manual for the <strong>Webspaces</strong> project — an ambitious system for creating
+multiplayer, editable 3D worlds out of nothing but static HTML files. It was built by George Fodor
+(gfodor) as an evolution of Mozilla Hubs (via the intermediate project &quot;Jel&quot;), and was paused
+mid-flight; these docs exist so that anyone (including future-you) can get back up to speed rapidly,
+top to bottom.</p>
+<blockquote>
+<p><strong>The one-sentence pitch:</strong> a webspace is a plain <code>.html</code> file with one <code>&lt;script&gt;</code> include; opening
+it in Chrome renders the document as a walkable 3D world, editing the world edits the HTML, and the
+engine writes the HTML back to wherever the file lives (local disk via the File System Access API,
+or a GitHub repo via the API) while syncing everything peer-to-peer with no dedicated server.</p>
+</blockquote>
+<h2 id="reading-order">Reading order</h2>
+<p>Start at 01 and read in order for a full ramp-up, or jump straight to the area you need.</p>
+<h3 id="orientation">Orientation</h3>
+<ul>
+<li><a href="01-what-is-webspaces.html">01 — What is Webspaces?</a> — vision, lineage (Hubs → Jel → Webspaces), core ideas, project status.</li>
+<li><a href="02-repo-layout.html">02 — Repository layout</a> — the five repos in this folder and how they relate.</li>
+<li><a href="03-getting-started.html">03 — Getting started as a developer</a> — running the engine locally, creating a webspace, dev workflow.</li>
+</ul>
+<h3 id="the-engine-top-down">The engine, top-down</h3>
+<ul>
+<li><a href="04-architecture-overview.html">04 — Architecture overview</a> — the big picture: DOM as the source of truth, ECS, networking, writeback.</li>
+<li><a href="05-boot-sequence.html">05 — Boot sequence</a> — from <code>&lt;script src=…&gt;</code> to an enterable world, step by step.</li>
+<li><a href="06-dom-to-3d.html">06 — The DOM ↔ 3D mapping</a> — how HTML elements become objects; webspace document format.</li>
+<li><a href="07-systems.html">07 — Systems inventory</a> — every system in <code>src/systems</code>, with deep dives on the big ten.</li>
+<li><a href="08-components.html">08 — Components inventory</a> — every A-Frame component in <code>src/components</code>.</li>
+<li><a href="09-media-pipeline.html">09 — Media pipeline</a> — how a URL/file becomes an image, video, PDF, model, or text page in-world.</li>
+</ul>
+<h3 id="networking--persistence">Networking &amp; persistence</h3>
+<ul>
+<li><a href="10-networking.html">10 — Networking architecture</a> — P2P via p2pcf/Cloudflare, NAF adapter, ownership, presence.</li>
+<li><a href="11-voice.html">11 — Voice chat</a> — WebRTC audio, worklets, lip sync/visemes.</li>
+<li><a href="12-writeback.html">12 — Writeback &amp; persistence</a> — saving worlds back to disk and GitHub; the origin abstraction.</li>
+<li><a href="13-collaborative-editing.html">13 — Collaborative editing</a> — Yjs + Quill rich text sync, metadata dataflow.</li>
+</ul>
+<h3 id="front-end">Front end</h3>
+<ul>
+<li><a href="14-ui-layer.html">14 — UI layer</a> — the React app, panels, dialogs, HUD, popups, i18n, storybook.</li>
+<li><a href="15-text-and-quill.html">15 — Text &amp; Quill</a> — in-world rich text pages, the Quill fork, rendering text to textures.</li>
+</ul>
+<h3 id="3d-specialities">3D specialities</h3>
+<ul>
+<li><a href="16-voxels.html">16 — Voxels &amp; SmoothVoxels</a> — VOX editing, the .svox format, the smoothvoxels library, voxmoji.</li>
+<li><a href="17-terrain.html">17 — Terrain</a> — procedural terrain (<code>src/terra</code>), chunking, workers, water/sky/environment.</li>
+<li><a href="18-avatars.html">18 — Avatars</a> — avatar construction, customization, animation.</li>
+<li><a href="19-rendering.html">19 — Rendering pipeline</a> — three.js fork, batching, effects, materials, text rendering.</li>
+<li><a href="20-physics.html">20 — Physics</a> — Ammo.js/three-ammo integration, character controller.</li>
+<li><a href="21-workers-wasm.html">21 — Workers, worklets &amp; WASM</a> — everything running off the main thread.</li>
+</ul>
+<h3 id="public-surface--ecosystem">Public surface &amp; ecosystem</h3>
+<ul>
+<li><a href="22-meta-tags-and-service.html">22 — Configuration surface</a> — <code>webspace.*</code> meta tags, attributes, query params, the COEP service worker, runtime globals.</li>
+<li><a href="23-sdk-site.html">23 — The docs/tutorial site</a> — webspace-sdk.github.io and the example worlds.</li>
+<li><a href="24-sibling-repos.html">24 — Forked &amp; sibling repos</a> — quill, networked-aframe, smoothvoxels forks; what changed and why.</li>
+<li><a href="25-build-deploy.html">25 — Build, deploy &amp; release</a> — webpack, S3/webspace.run deployment, versioning.</li>
+</ul>
+<h3 id="wrap-up">Wrap-up</h3>
+<ul>
+<li><a href="26-unfinished-work.html">26 — Known issues &amp; unfinished work</a> — the todo list, rough edges, where work stopped.</li>
+<li><a href="27-glossary.html">27 — Glossary</a> — Hubs/Jel/Webspaces jargon decoder.</li>
+</ul>
+<h3 id="looking-outward">Looking outward</h3>
+<ul>
+<li><a href="28-atrium-integration.html">28 — Webspaces × Atrium</a> — analysis of Tony Parisi&#39;s Atrium (glTF browser with multiplayer) and concrete integration paths.</li>
+</ul>
+<h2 id="quick-facts">Quick facts</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Main repo</td>
+<td><code>webspace-engine</code> (~563 source files, ~85k lines of JS under <code>src/</code>)</td>
+</tr>
+<tr>
+<td>License</td>
+<td>MPL-2.0</td>
+</tr>
+<tr>
+<td>Last engine commit</td>
+<td>2025-12-05 (<code>e9ca4b206</code> &quot;Fix YouTube resolution failures causing game freeze&quot;)</td>
+</tr>
+<tr>
+<td>Lineage</td>
+<td>Mozilla Hubs → Jel → Webspaces</td>
+</tr>
+<tr>
+<td>Org</td>
+<td>github.com/webspace-sdk</td>
+</tr>
+<tr>
+<td>Public site</td>
+<td><a href="https://webspaces.space">https://webspaces.space</a> (served from <code>webspace-sdk.github.io</code>)</td>
+</tr>
+<tr>
+<td>Engine CDN</td>
+<td><code>webspace.run</code> S3 bucket (<code>webspace-latest.js</code>)</td>
+</tr>
+</tbody></table></div>
+
+    <nav class="prev-next">
+      <span></span>
+      <a class="pn-next" href="01-what-is-webspaces.html"><span class="pn-dir">Next →</span><span class="pn-title">01 — What is Webspaces?</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

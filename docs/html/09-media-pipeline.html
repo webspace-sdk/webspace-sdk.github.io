@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>09 — Media Pipeline: How a URL Becomes an Object — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li class="current"><a href="09-media-pipeline.html" aria-current="page"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="09-—-media-pipeline-how-a-url-becomes-an-object">09 — Media Pipeline: How a URL Becomes an Object</h1>
+<p>The path from &quot;user pastes a URL / drops a file / the importer meets an <code>&lt;img&gt;</code>&quot; to &quot;textured,
+physical, networked object in the world&quot;.</p>
+<h2 id="overview">Overview</h2>
+<pre><code class="hljs">URL / File / Clipboard / &lt;element in document&gt;
+   │
+   ▼
+scene-entry-manager media events (add_media, add_media_text, add_media_vox, …)
+   │        └── or WorldImporter during document import
+   ▼
+entity stamped from NAF template (#interactable-media …) with media-loader
+   │
+   ▼
+media-loader: URL resolution → CORS preflight/proxy → content-type detection
+   │
+   ▼
+media-presence-system: distance gate (HIDDEN / PENDING / PRESENT, ≤4 concurrent loads)
+   │
+   ▼
+type-specific view component (media-image / media-video / media-pdf / media-text / media-vox / media-emoji / media-audio / media-stream)
+   │
+   ▼
+geometry + material + physics shape + hover menu + networked sync + DOM serialization
+</code></pre>
+<h2 id="entry-points-srcscene-entry-managerjs166–419">Entry points (<code>src/scene-entry-manager.js:166–419</code>)</h2>
+<p>Scene events registered at entry:</p>
+<ul>
+<li><code>add_media</code> — generic URL/File. Files are uploaded to the writeback origin&#39;s <code>assets/</code> folder
+(or offered to peers via <code>upload_asset_request</code> if you lack upload rights).</li>
+<li><code>add_media_text</code> — creates a Quill text object (contentSubtypes: page, label, banner).</li>
+<li><code>add_media_emoji</code>, <code>add_media_vox</code>, <code>add_media_exploded_pdf</code>.</li>
+<li><code>action_share_screen</code> / <code>action_share_camera</code> — WebRTC capture into a <code>media-stream</code> entity.</li>
+<li>Drag-drop and paste handlers route here too (<code>paste-system</code>).</li>
+</ul>
+<p>Object provenance is tracked via <code>src/object-types.js</code>: origins URL / FILE / CLIPBOARD / SPAWNER
+crossed with content class (IMAGE, VIDEO, PDF, MODEL, …) inferred from MIME prefix.</p>
+<h2 id="url-resolution--type-detection-srcutilsmedia-utilsjs">URL resolution &amp; type detection (<code>src/utils/media-utils.js</code>)</h2>
+<ul>
+<li><code>preflightUrl()</code> — canonicalizes, checks CORS, and falls back to the configured CORS proxy
+(late commits switched to a <strong>Cloudflare CORS proxy</strong>).</li>
+<li><code>guessContentType()</code> — extension first, then HEAD request <code>Content-Type</code>.</li>
+<li>YouTube URLs resolve through <strong>youtubei.js</strong> (<code>YouTube.js</code>) — the final commit in the repo fixed
+YouTube resolution failures that froze the game.</li>
+<li>Thumbnails historically via the Hubs &quot;nearspark&quot; thumbnail server (legacy <code>.defaults.env</code> entry).</li>
+</ul>
+<h2 id="distance-based-presence-srcsystemsmedia-presence-systemjs">Distance-based presence (<code>src/systems/media-presence-system.js</code>)</h2>
+<p>Media far from the player isn&#39;t loaded at all:</p>
+<ul>
+<li>States: <code>PRESENT</code>, <code>HIDDEN</code>, <code>PENDING</code>.</li>
+<li>Beyond ~17 units, new media starts HIDDEN; approach promotes to PRESENT; retreat past ~25 demotes.</li>
+<li>At most 4 concurrent transitions, staggered over frames, to avoid load hitches.</li>
+</ul>
+<h2 id="per-type-handling-srccomponentsmedia-viewsjs-unless-noted">Per-type handling (<code>src/components/media-views.js</code> unless noted)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Pipeline notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Image</strong></td>
+<td>HubsTextureLoader; Basis/KTX2 GPU-compressed formats supported (<a href="19-rendering.html">19</a>); animated GIF via canvas-swapping GIFTexture; aspect-preserving chiclet plane; equirect images can feed the environment map. Known todos: transparent PNG black background, local GIF paste/unpack bugs.</td>
+</tr>
+<tr>
+<td><strong>Video</strong></td>
+<td>Direct <code>&lt;video&gt;</code> for MP4/WebM; <strong>hls.js</strong> for HLS; <strong>dashjs</strong> for DASH; YouTube via youtubei.js. VideoTexture on a plane, hover menu play/pause/volume, networked <code>time</code>/<code>videoPaused</code> (non-authorized: anyone can play/pause), spatialized audio.</td>
+</tr>
+<tr>
+<td><strong>Audio</strong></td>
+<td>THREE positional audio + speaker icon billboard.</td>
+</tr>
+<tr>
+<td><strong>PDF</strong></td>
+<td>pdfjs-dist renders the current page into a pooled canvas (<code>src/utils/pdf-pool</code>); <code>index</code> (page) is networked; &quot;exploded&quot; mode spawns each page as an object.</td>
+</tr>
+<tr>
+<td><strong>Text</strong></td>
+<td>Quill document rendered to texture; content synced as Yjs deltas, not as texture. <a href="15-text-and-quill.html">15</a></td>
+</tr>
+<tr>
+<td><strong>VOX/SVOX</strong></td>
+<td>Registered with VoxSystem; meshed in a worker; instanced; editable. <a href="16-voxels.html">16</a></td>
+</tr>
+<tr>
+<td><strong>glTF/GLB</strong></td>
+<td><code>gltf-model-plus</code> with ref-counted cache; Draco decode supported; can contribute walkable geometry (floor/wall colliders from GLBs was among the last features).</td>
+</tr>
+<tr>
+<td><strong>Emoji</strong></td>
+<td>Voxelized through voxmoji atlas instancing.</td>
+</tr>
+<tr>
+<td><strong>Stream</strong></td>
+<td>Screen/camera share; snap position/scale for screen share still a todo.</td>
+</tr>
+</tbody></table></div>
+<h2 id="what-every-media-object-gets">What every media object gets</h2>
+<ul>
+<li><strong>Physics</strong>: <code>body-helper</code> + auto box/hull shape; un-owned bodies kinematic.</li>
+<li><strong>Interaction</strong>: <code>tags</code> (holdable, remote-constraint), hover menu, hoverable glow.</li>
+<li><strong>Networking</strong>: stamped from <code>#interactable-media</code> schema (<code>src/network-schemas.js</code>) — transform +
+media fields sync; <code>locked</code> prevents casual edits.</li>
+<li><strong>Persistence</strong>: <code>dom-serialized-entity</code> mirrors it into the light DOM as the right tag
+(<a href="06-dom-to-3d.html">06</a>); uploads live in <code>assets/</code> next to the HTML.</li>
+<li><strong>Spawn flair</strong>: scale-in animation + particle loader + sky beam (skippable via <code>skipLoader</code>).</li>
+<li><strong>Undo</strong>: registered with the undo system.</li>
+</ul>
+<h2 id="upload-flow">Upload flow</h2>
+<p>With writeback active, <code>atomAccessManager.uploadAsset(fileOrBlob)</code> writes into <code>assets/</code> (local dir
+or GitHub repo). Without upload rights, <code>upload_asset_request</code> over the data channel asks a
+privileged peer to store it (permission <code>upload_files</code>). The returned relative URL
+(<code>assets/&lt;name&gt;</code>) is what lands in the document — worlds stay self-contained and portable.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="08-components.html"><span class="pn-dir">← Previous</span><span class="pn-title">08 — Components Inventory</span></a>
+      <a class="pn-next" href="10-networking.html"><span class="pn-dir">Next →</span><span class="pn-title">10 — Networking Architecture</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

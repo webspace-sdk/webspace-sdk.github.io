@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>28 — Webspaces × Atrium: Integration Analysis — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li class="current"><a href="28-atrium-integration.html" aria-current="page"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="28-—-webspaces-×-atrium-integration-analysis">28 — Webspaces × Atrium: Integration Analysis</h1>
+<p>Analysis of <a href="https://github.com/tparisi/atrium">tparisi/atrium</a> (cloned at <code>atrium/</code>, last commit
+2026-06-22) and the concrete ways Webspaces could join what Tony Parisi is building.</p>
+<h2 id="what-atrium-is">What Atrium is</h2>
+<p><strong>&quot;A glTF browser with multiplayer.&quot;</strong> Point it at a <code>.gltf</code> and it renders; put a world server
+behind it and it&#39;s a shared space. Built explicitly to follow Parisi&#39;s <em>Seven Rules of the
+Metaverse</em>. Three layers:</p>
+<ul>
+<li><strong>Content</strong>: standard glTF 2.0; world config in root <code>extras.atrium</code> (name, navigation modes,
+speeds, update rates); per-node <code>extras.atrium.source</code> for external references;
+<code>extras.atrium.playback</code> for animation state; <code>.atrium.json</code> manifest (gltf + ws:// server URL).</li>
+<li><strong>Protocol (SOP)</strong>: ~13 JSON-schema-validated WebSocket messages — <code>hello</code>/<code>ping</code>/<code>tick</code>,
+<code>send</code> (client mutation request) → <code>set</code> (authoritative broadcast, session-tagged for loopback),
+<code>add</code>/<code>remove</code> (nodes, incl. avatar descriptors with inline mesh geometry), <code>view</code> (fire-and-
+forget avatar pose, rate-limited ~20 Hz), <code>join</code>/<code>leave</code> (presence), <code>som-dump</code> (full world glTF
+to late joiners).</li>
+<li><strong>Runtime (SOM)</strong>: a <strong>DOM-inspired Scene Object Model</strong> over glTF-Transform — SOMNode/Mesh/
+Material/Camera/Light/Animation wrappers with typed accessors, <code>mutation</code> events, DOM-style
+<code>addEventListener</code>, <code>getObjectByName()</code> flat namespace, <code>setPath()</code> deep mutation
+(<code>mesh.primitives[0].material.baseColorFactor</code>), and DOM-like pointer events (<code>pointerdown</code>,
+capture, hover) dispatched onto SOM nodes. Same API on server and client; <strong>the wire protocol is
+serialized SOM mutations</strong>. ~432 tests; renderer-neutral headless client; Three.js glue isolated
+in <code>renderer-three</code> (glTF-Transform <code>DocumentView</code>); interaction <em>policy</em> isolated in
+<code>@atrium/interaction</code>.</li>
+</ul>
+<p>Server-authoritative, last-write-wins by sequence number; avatars are client-authored &quot;ephemeral&quot;
+nodes; the server is a ~500-line Node process; <strong>no persistence, no permissions, no physics, no
+voice yet</strong> — all explicitly on the roadmap (with <code>ATRIUM_world</code> / <code>ATRIUM_interactivity</code> /
+<code>ATRIUM_user_object</code> extensions ahead).</p>
+<h2 id="the-rhyme">The rhyme</h2>
+<p>The two projects are the same thesis in two dialects:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Webspaces</th>
+<th>Atrium</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>The world is…</td>
+<td>an HTML document</td>
+<td>a glTF document</td>
+</tr>
+<tr>
+<td>Live API over it</td>
+<td>the actual DOM (+shadow-root runtime)</td>
+<td>SOM, a &quot;DOM-inspired&quot; model</td>
+</tr>
+<tr>
+<td>Change detection</td>
+<td>MutationObserver → writeback</td>
+<td>SOM mutation events → SOP <code>send</code></td>
+</tr>
+<tr>
+<td>World config</td>
+<td><code>webspace.*</code> meta tags</td>
+<td>root <code>extras.atrium</code></td>
+</tr>
+<tr>
+<td>Sub-resources</td>
+<td><code>assets/</code> + element <code>src</code></td>
+<td><code>extras.atrium.source</code> external refs</td>
+</tr>
+<tr>
+<td>Multiplayer</td>
+<td>serverless P2P (p2pcf/WebRTC, FlatBuffers NAF)</td>
+<td>small authoritative WebSocket server (JSON SOP)</td>
+</tr>
+<tr>
+<td>Consistency</td>
+<td>per-entity ownership + Yjs CRDTs</td>
+<td>server last-write-wins + seq</td>
+</tr>
+<tr>
+<td>Identity/permissions</td>
+<td>keypair in document meta, challenge/response</td>
+<td>none yet (roadmap)</td>
+</tr>
+<tr>
+<td>Persistence</td>
+<td>writeback to file/GitHub</td>
+<td>none yet (roadmap)</td>
+</tr>
+<tr>
+<td>Engine surface</td>
+<td>huge (terrain, voxels, voice, physics, text, media)</td>
+<td>minimal, disciplined, tested</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>feature-rich, paused 2025-12</td>
+<td>active (Session 47, June 2026), foundation-stage</td>
+</tr>
+<tr>
+<td>Ethos</td>
+<td>&quot;Rebooting the web in 3D&quot; — view-source, static hosting, own your file</td>
+<td>Seven Rules — browser not platform, open formats, static first</td>
+</tr>
+</tbody></table></div>
+<p>Webspaces is a maximal <em>experience</em> built on a document-as-world idea with no protocol formalism;
+Atrium is a minimal, rigorously specified <em>protocol + object model</em> with almost no experience layer
+yet. Nearly every gap in one is a strength of the other.</p>
+<h2 id="ways-to-bring-webspaces-into-the-fold">Ways to bring Webspaces into the fold</h2>
+<p>Ordered roughly by leverage-per-effort.</p>
+<h3 id="1-donate-the-persistence-design-and-code-gltf-writeback">1. Donate the persistence design (and code): glTF writeback</h3>
+<p>Atrium&#39;s biggest open hole vs. its own Rule of ownership — persistence is &quot;🔜 Future&quot; — is exactly
+Webspaces&#39; crown jewel. The writeback architecture (<a href="12-writeback.html">12</a>) ports almost verbatim:
+SOM already serializes the whole world (<code>io.writeJSON</code> — the som-dump path <em>is</em> a save), so wire an
+<code>AtriumWriteback</code> module to the server (or a privileged client): dirty-tracking off SOM mutation
+events, ≥10s throttle, master-writer election, then commit <code>space.gltf</code> (+ <code>assets/</code>) to a GitHub
+repo via fine-grained PAT, or to disk via the File System Access API in a browser-hosted server.
+&quot;Your world&#39;s history is git history&quot; is the most Seven-Rules-compliant persistence story
+imaginable, and it&#39;s already proven in Webspaces. This is the highest-value, lowest-friction
+contribution — a PR-sized project (<code>packages/persistence</code>?).</p>
+<h3 id="2-donate-the-identitypermissions-model">2. Donate the identity/permissions model</h3>
+<p>Atrium currently lets every connected client mutate everything; permissions are deferred with no
+design yet. Webspaces&#39; model (<a href="10-networking.html">10</a>) needs no accounts and fits Atrium&#39;s document-
+first ethos exactly: owner public key in the document (<code>extras.atrium.keys.owner</code> mirroring
+<code>webspace.keys.owner</code>), client keypairs in local storage, Ed25519 challenge/response at <code>hello</code>,
+role meta (<code>extras.atrium.permissions.content_change_role</code>) enforced at the server&#39;s <code>send</code>
+validation gate — which, unlike P2P Webspaces, has a natural enforcement point. SOP already has
+<code>PERMISSION_DENIED</code> and <code>AUTH_FAILED</code> error codes and a <code>ticket</code> field in <code>hello</code> reserved —
+the protocol was built waiting for this. A design doc + reference implementation would likely be
+welcomed.</p>
+<h3 id="3-make-webspace-engine-an-sop-client-the-flagship-move">3. Make webspace-engine an SOP client (the flagship move)</h3>
+<p>Atrium&#39;s README: <em>&quot;if you want to build a client in a different renderer… everything you need is
+here.&quot;</em> Webspaces can be that thousand-flowers client. Concretely: an <code>sop</code> adapter alongside the
+<code>p2pcf</code> NAF adapter in webspace-engine — map <code>som-dump</code> → world import, <code>set</code>/<code>add</code>/<code>remove</code> →
+entity updates, avatar rig → <code>view</code> messages + an <code>add</code>ed avatar descriptor, and expose Webspaces
+objects by name to <code>getObjectByName</code> addressing. A webspace could then join an Atrium world server
+(rich Webspaces client rendering an Atrium world), and Atrium&#39;s inspectors could debug a live
+Webspaces session. Real caveats: webspace-engine&#39;s scene identity is name/hash-based DOM entities
+vs. SOM&#39;s glTF node names (bridgeable — both are flat name namespaces), and the authority models
+differ (Webspaces per-entity ownership vs. Atrium server authority — the adapter simply defers to
+the server). This is the deepest integration but also the clearest demonstration that SOP is an
+interoperable standard rather than one app&#39;s protocol.</p>
+<h3 id="4-give-atrium-a-serverless-tier">4. Give Atrium a serverless tier</h3>
+<p>Atrium&#39;s degradation story is &quot;static first, multiplayer second&quot;; Webspaces adds the missing middle
+rung: <strong>static → P2P → server-authoritative</strong>. Port the p2pcf transport (Cloudflare Worker
+signaling + WebRTC mesh) as an alternate SOP carrier — SOP messages are small JSON and transport-
+agnostic; the missing piece is authority, solvable with Webspaces&#39; master-client election
+(the elected peer runs the same <code>@atrium/server</code> world logic in-browser — feasible because the
+server is deliberately tiny and the client package is headless/renderer-neutral). Result: an
+<code>.atrium.json</code> with no <code>server</code> field could still be multiplayer, for free, on static hosting.
+That&#39;s a capability Parisi&#39;s framing clearly wants and Webspaces has already de-risked.</p>
+<h3 id="5-an-html-⇄-gltf-world-bridge">5. An HTML ⇄ glTF world bridge</h3>
+<p>Both formats are &quot;document + config-in-extras + positioned objects&quot;, so a converter is honest, not
+lossy hackery: <code>webspace.*</code> meta tags ↔ root <code>extras.atrium</code>; body elements ↔ named nodes;
+CSS <code>translate3d/rotate3d/scale3d</code> ↔ node TRS; media elements ↔ nodes with <code>extras.atrium.source</code>
+(images/video as textured quads; <code>.glb</code> models directly; svox → glTF mesh export via the
+SmoothVoxels generator, which already emits positions/normals/colors/indices). Two deliverables:
+<code>webspace export space.gltf</code> (any webspace becomes viewable in Atrium and every other glTF tool —
+a huge portability win for Webspaces content) and <code>&lt;model src=&quot;world.gltf&quot;&gt;</code> honoring
+<code>extras.atrium</code> (Atrium worlds embedded inside webspaces). This also feeds Atrium&#39;s &quot;real content
+stress testing&quot; roadmap item with an instant corpus.</p>
+<h3 id="6-contribute-subsystem-experience-where-atriums-roadmap-is-heading">6. Contribute subsystem experience where Atrium&#39;s roadmap is heading</h3>
+<ul>
+<li><strong>Voice</strong>: Atrium has none; Webspaces&#39; WebRTC voice + RNNoise VAD + viseme-in-audio-frame trick
+(<a href="11-voice.html">11</a>) could become an <code>@atrium/voice</code> package — it&#39;s already peer-to-peer and
+server-optional.</li>
+<li><strong><code>ATRIUM_interactivity</code></strong> (awaits pointer bubbling): Webspaces is a live catalog of the
+interaction policy this extension must express — grab/move with snapping, stack axes, locking,
+hover menus, undo. Since Atrium deliberately splits policy into <code>@atrium/interaction</code>, Webspaces&#39;
+battle-tested conventions can inform the schema before it ossifies.</li>
+<li><strong>CRDTs</strong>: SOP&#39;s per-field last-write-wins can&#39;t do collaborative text or concurrent fine-grained
+edits; Webspaces&#39; Yjs + edit-ring design (<a href="13-collaborative-editing.html">13</a>) is the proven
+next step when Atrium gets there (e.g., a text-panel user object).</li>
+<li><strong><code>ATRIUM_user_object</code></strong> (design open): Webspaces&#39; media pipeline (image/video/PDF/text/voxel
+objects with per-type components) is effectively a working draft of an object-type registry.</li>
+</ul>
+<h3 id="7-strategicpositioning-framing">7. Strategic/positioning framing</h3>
+<p>Webspaces <em>is</em> the Seven Rules implemented in HTML — no accounts, static hosting, view-source,
+own-your-file, graceful degradation. Rather than merging codebases (impractical: Webspaces is a
+paused 85k-line Hubs descendant on three r141; Atrium is a young, clean-room stack), the fold-in
+is: <strong>shared specs, shared modules, sibling runtimes.</strong> Atrium defines SOP/SOM and the extras
+conventions; Webspaces adopts them where it&#39;s weak (protocol formalism, schema validation, a
+server-authoritative option) and donates where it&#39;s strong (persistence, permissions, serverless
+transport, voice, interaction UX, content). A joint blog post — &quot;the same seven rules, in HTML and
+in glTF&quot; — practically writes itself, and Webspaces&#39; unfinished launch content
+(<a href="26-unfinished-work.html">26</a>) could ride it.</p>
+<h2 id="sequencing-recommendation">Sequencing recommendation</h2>
+<ol>
+<li><strong>Week-one conversation starter</strong>: the permissions design doc (#2) + GitHub-writeback
+persistence module (#1) — small, self-contained, directly on Atrium&#39;s stated roadmap, and they
+showcase Webspaces&#39; distinctive ideas.</li>
+<li><strong>The demo that sells it</strong>: HTML→glTF exporter (#5) so existing webspaces open in Atrium&#39;s
+browser and SOM inspector.</li>
+<li><strong>The deep integration</strong>: SOP adapter in webspace-engine (#3), then the serverless SOP tier (#4).</li>
+<li><strong>Ongoing</strong>: voice package and interactivity/user-object design input (#6).</li>
+</ol>
+<h2 id="watch-outs">Watch-outs</h2>
+<ul>
+<li><strong>Atrium is design-first and test-first</strong> (432 tests, &quot;no throwaway code&quot;, session briefs before
+code). Contributions should arrive as design briefs + tested packages, matching the house style —
+not engine-sized code drops.</li>
+<li><strong>Session 47 is mid-flight</strong> (SOMCamera position seeding bug; &quot;do not attempt further fixes until
+resolved&quot;) — avoid touching camera/nav code paths initially.</li>
+<li><strong>Authority-model mismatch</strong> is the one real philosophical divergence (P2P ownership vs. server
+authority). The serverless tier (#4) is the reconciliation, but it needs a real design
+conversation, not a unilateral PR.</li>
+<li><strong>Webspaces bitrot</strong>: before any joint demo, re-verify webspace-engine still builds and runs
+(<a href="26-unfinished-work.html">26</a> step 1).</li>
+</ul>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="27-glossary.html"><span class="pn-dir">← Previous</span><span class="pn-title">27 — Glossary</span></a>
+      <span></span>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

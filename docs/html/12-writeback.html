@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12 — Writeback &amp; Persistence — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li class="current"><a href="12-writeback.html" aria-current="page"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="12-—-writeback--persistence">12 — Writeback &amp; Persistence</h1>
+<p>Webspaces has no database. Persistence = writing the (serialized) HTML document, plus its <code>assets/</code>
+folder, back to wherever it lives. This doc covers the origin abstraction, both writeback backends,
+the dirty-tracking loop, and local storage.</p>
+<h2 id="the-orchestrator-atomaccessmanager-srcutilsatom-access-managerjs">The orchestrator: AtomAccessManager (<code>src/utils/atom-access-manager.js</code>)</h2>
+<ul>
+<li>On init, picks a writeback backend: <code>file:</code> protocol → <code>FileWriteback</code>; otherwise, if the local
+store has GitHub credentials → <code>GitHubWriteback</code> (<code>init()</code> at lines 107+).</li>
+<li>Installs a <strong>MutationObserver over <code>document.documentElement</code></strong> (subtree, childList, attributes,
+characterData; styled-components <code>&lt;style&gt;</code> churn ignored). Mutations mark the document dirty and
+queue a write (~250ms batch).</li>
+<li><strong>Throttling</strong>: writes flush at most every <code>MAX_WRITE_RATE_MS = 10000</code> (10s). <code>beforeunload</code>
+forces an immediate flush if dirty and prompts if a write is in flight.</li>
+<li>Exposes <code>documentIsDirty</code> + <code>document-dirty-state-changed</code> (drives the unsaved-changes UI),
+<code>saveChangesToOrigin</code>, <code>writebackOriginState()</code>, and <code>uploadAsset()</code>.</li>
+<li><strong>Master-writer election</strong>: only one client writes to the origin at a time (others&#39; edits reach
+the master via NAF and are saved by it).</li>
+<li>Also the permissions authority (<a href="10-networking.html">10</a>) — access and persistence are one module
+because both answer &quot;who may change this file&quot;.</li>
+</ul>
+<p>What gets written is the light DOM, which <code>DomSerializeSystem</code> keeps current (<a href="06-dom-to-3d.html">06</a>).</p>
+<h2 id="backend-1-filewriteback-srcwritebackfile-writebackjs">Backend 1: FileWriteback (<code>src/writeback/file-writeback.js</code>)</h2>
+<p>For worlds opened from disk (<code>file:</code>), using the <strong>File System Access API</strong> (Chrome):</p>
+<ul>
+<li><strong>Handles</strong> persist in IndexedDB db <code>file-handles</code> (stores <code>space-file-handles</code> by space_id,
+<code>url-file-handles</code> by url), so re-opening a world doesn&#39;t re-prompt for the folder.</li>
+<li><code>open()</code> → <code>window.showDirectoryPicker()</code>, validates the directory against the URL path, locates
+the HTML file, stores handles; permissions via <code>queryPermission</code>/<code>requestPermission({mode: &quot;readwrite&quot;})</code>.</li>
+<li><code>write(content)</code> → <code>createWritable()</code> → write → close, with an <code>isWriting</code> mutex and progress
+callbacks.</li>
+<li><code>uploadAsset(file)</code> → writes into an <code>assets/</code> subdirectory; returns <code>assets/&lt;name&gt;</code>.</li>
+<li><code>contentUrlForRelativePath()</code> serves local assets as cached blob URLs (with validity re-checks).</li>
+</ul>
+<h2 id="backend-2-githubwriteback-srcwritebackgithub-writebackjs">Backend 2: GitHubWriteback (<code>src/writeback/github-writeback.js</code>)</h2>
+<p>For worlds hosted from a GitHub repo (typically GitHub Pages):</p>
+<ul>
+<li><strong>Credentials</strong>: fine-grained PAT with Contents permission on the one repo (user walkthrough:
+<code>webspace-engine/github-writeback.md</code>), stored in the local store as
+<code>{ type: &quot;github&quot;, user/org, repo, branch, secret }</code>.</li>
+<li><code>open()</code> validates token, repo, and branch via <strong>Octokat</strong>, fetches the current file, and sets
+<code>originState</code> (VALID / INVALID_CREDENTIALS / INVALID_REPO / INVALID_PATH).</li>
+<li><code>write(content, path)</code> performs a real git commit through the API: create blob (utf-8 or base64)
+→ get branch head → create tree (mode 100644, base_tree = head) → create commit
+(&quot;Update Webspace world <title>&quot;) → update the branch ref. Commits are atomic; no merge handling
+(single master writer makes conflicts rare; a deploy-in-flight guard was still a todo).</li>
+<li><code>uploadAsset()</code> = <code>write()</code> under <code>assets/</code>; for <strong>public</strong> repos the origin info (owner/repo/
+branch) is broadcast in presence so peers can fetch assets via raw.githubusercontent.com; private
+repos don&#39;t broadcast.</li>
+</ul>
+<p>The end-to-end effect: edit a world live on the web, and a minute later the repo has a commit — the
+world&#39;s history is git history.</p>
+<h2 id="metadata-dataflows-docmeta-dataflowtxt">Metadata dataflows (<code>doc/meta-dataflow.txt</code>)</h2>
+<ul>
+<li><strong>Hub metadata</strong> (world name, colors, spawn…): <code>hubChannel.updateHubMeta</code> → broadcast + write into
+DOM meta tags → MutationObserver → metadata source refresh → UI.</li>
+<li><strong>Space metadata</strong> (the world tree): <code>dynaChannel.updateSpace</code> → 3s-throttled flush → writes the
+<em>index</em> HTML via writeback <strong>and</strong> broadcasts <code>update_nav</code> with the full HTML → peers rebuild
+their tree (<code>src/utils/tree-sync.js</code>, <code>tree-manager</code>) → <code>treedata_updated</code> → UI.</li>
+</ul>
+<h2 id="local-storage-inventory">Local storage inventory</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Store</th>
+<th>Where</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>App store (<code>src/storage/store.js</code>)</td>
+<td>localStorage key <code>___webspace_store</code>, jsonschema-validated</td>
+<td>profile (displayName, avatar color), <strong>credentials (ECDSA keypair)</strong>, writeback config incl. GitHub PAT, activity flags (onboarding), settings (mic, key tips, detail level), equips (emoji/color slots), preferences</td>
+</tr>
+<tr>
+<td>Hub store (<code>src/storage/hub-store.js</code>)</td>
+<td>per-hub</td>
+<td>last position/rotation (respawn where you left)</td>
+</tr>
+<tr>
+<td>Media search store (<code>src/storage/media-search-store.js</code>)</td>
+<td>memory</td>
+<td>media browser results (legacy Reticulum search API: bing/tenor/youtube/sketchfab sources)</td>
+</tr>
+<tr>
+<td>File handles</td>
+<td>IndexedDB <code>file-handles</code></td>
+<td>FileSystem handles for file: worlds</td>
+</tr>
+<tr>
+<td>Terrain cache</td>
+<td>IndexedDB <code>terra</code></td>
+<td>generated terrain chunks by <code>type/mesher/seed/x/z/version</code></td>
+</tr>
+</tbody></table></div>
+<p>Security note for future work: the GitHub PAT lives in localStorage in plaintext, and the keypair is
+likewise local-only — acceptable for a personal tool, worth revisiting for broader release.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="11-voice.html"><span class="pn-dir">← Previous</span><span class="pn-title">11 — Voice Chat &amp; Audio</span></a>
+      <a class="pn-next" href="13-collaborative-editing.html"><span class="pn-dir">Next →</span><span class="pn-title">13 — Collaborative Editing: Yjs, Edit Rings, Tree Sync</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

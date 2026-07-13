@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 — Boot Sequence: From &lt;script&gt; Tag to Enterable World — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li class="current"><a href="05-boot-sequence.html" aria-current="page"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="05-—-boot-sequence-from-script-tag-to-enterable-world">05 — Boot Sequence: From <code>&lt;script&gt;</code> Tag to Enterable World</h1>
+<p>This is the step-by-step story of what happens when a browser opens a webspace HTML file. All paths
+are relative to <code>webspace-engine/</code>.</p>
+<h2 id="the-cast">The cast</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>src/index.js</code> (~1,270 lines)</td>
+<td>Bootstrap: patching, capture, scene creation, pause logic, quality scaling</td>
+</tr>
+<tr>
+<td><code>src/init.js</code> (~510 lines)</td>
+<td>Network stack: hub join, presence, datachannel handlers, position tracking</td>
+</tr>
+<tr>
+<td><code>src/App.js</code></td>
+<td>Global app object (<code>window.APP</code>): store, quality/detail level</td>
+</tr>
+<tr>
+<td><code>src/aframe-dom.js</code></td>
+<td>The entire A-Frame scene as a hardcoded XML string (cursors, avatar rig, NAF templates)</td>
+</tr>
+<tr>
+<td><code>src/scene-entry-manager.js</code></td>
+<td>Gate between &quot;loaded&quot; and &quot;playing&quot;: avatar spawn, media event handlers</td>
+</tr>
+<tr>
+<td><code>src/utils/world-importer.js</code></td>
+<td>Parses the captured HTML into networked 3D entities</td>
+</tr>
+</tbody></table></div>
+<h2 id="step-by-step">Step by step</h2>
+<h3 id="1-script-load--patching-srcindexjs">1. Script load &amp; patching (<code>src/index.js</code>)</h3>
+<p>A DOMContentLoaded listener calls <code>start()</code> (registered near <code>src/index.js:1263</code>). Before and during
+early startup:</p>
+<ul>
+<li><code>seedrandom(&quot;base&quot;)</code> seeds the RNG — <strong>determinism matters</strong> because entity IDs must match across clients.</li>
+<li>WebGL context is patched to detect software rendering (SwiftShader), which drives initial quality.</li>
+<li>three.js is patched to never dispose shader programs (<code>patchThreeNoProgramDispose</code>).</li>
+<li><code>window.APP = new App()</code> is created — the global hub for store, quality, scene reference.</li>
+<li><code>THREE.Object3D.DefaultMatrixAutoUpdate = false</code> (index.js:187) — matrices are updated manually
+engine-wide; this is a pervasive performance assumption inherited from Hubs.</li>
+<li>Platform detection (OS, browser, mobile/VR) sets flags used everywhere (<code>isBotMode</code>, <code>isDebug</code>, etc.).</li>
+</ul>
+<h3 id="2-capture-the-users-html-hide-it-behind-a-shadow-root-srcindexjs920–962">2. Capture the user&#39;s HTML, hide it behind a shadow root (<code>src/index.js:920–962</code>)</h3>
+<p>The load-bearing trick of the whole project:</p>
+<pre><code class="hljs language-js"><span class="hljs-keyword">const</span> initialWorldHTML = <span class="hljs-string">`&lt;!DOCTYPE html&gt;\n&lt;html&gt;&lt;body&gt;<span class="hljs-subst">${<span class="hljs-variable language_">document</span>.body.innerHTML}</span>&lt;/body&gt;&lt;/html&gt;`</span>;
+<span class="hljs-variable language_">window</span>.<span class="hljs-property">DOM_ROOT</span> = <span class="hljs-variable language_">document</span>.<span class="hljs-property">body</span>.<span class="hljs-title function_">attachShadow</span>({ <span class="hljs-attr">mode</span>: <span class="hljs-string">&quot;open&quot;</span> });
+<span class="hljs-variable constant_">AFRAME</span>.<span class="hljs-property">selectorRoot</span> = <span class="hljs-variable language_">window</span>.<span class="hljs-property">DOM_ROOT</span>;
+</code></pre>
+<p>The author&#39;s plain HTML body — paragraphs, images, divs with CSS transforms — is snapshotted into a
+string, then a <strong>shadow root is attached to <code>&lt;body&gt;</code></strong>, which visually replaces the page content.
+Everything the engine renders (the A-Frame scene, the React UI) lives inside that shadow root. The
+original light-DOM body remains the durable, serializable document — the &quot;file on disk&quot; — while the
+shadow DOM is the runtime view. A-Frame is pointed at the shadow root via <code>AFRAME.selectorRoot</code>.</p>
+<h3 id="3-instantiate-the-a-frame-scene-srcaframe-domjs">3. Instantiate the A-Frame scene (<code>src/aframe-dom.js</code>)</h3>
+<p><code>aframe-dom.js</code> exports one big XML string containing the whole static scene:</p>
+<ul>
+<li><code>&lt;a-scene embedded effects hubs-systems renderer=&quot;webgl2: true; colorManagement: true&quot; …&gt;</code></li>
+<li>Two cursor entities (left/right) with kinematic physics bodies and billboard visuals.</li>
+<li>The <strong>avatar rig</strong> (<code>#avatar-rig</code>): POV camera node at y=1.6, left/right controller entities with
+teleporter components, and a skinned glTF avatar model with IK controller, nametag, audio source.</li>
+<li>A separate <strong>viewing rig</strong> for spectator/flat cameras.</li>
+<li>The NAF <code>&lt;template&gt;</code> elements: <code>#remote-avatar</code>, <code>#interactable-media</code>, <code>#static-media</code>, etc. —
+the blueprints every networked entity is stamped from.</li>
+</ul>
+<p>It&#39;s appended into <code>DOM_ROOT</code>, and boot awaits its <code>nodeready</code> event.</p>
+<h3 id="4-managers-wired-onto-windowapp-srcindexjs155–180">4. Managers wired onto <code>window.APP</code> (<code>src/index.js:155–180</code>)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Manager</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>accountChannel</code>, <code>dynaChannel</code>, <code>spaceChannel</code>, <code>hubChannel</code></td>
+<td>Metadata/state channels (Reticulum-era names; now largely DOM/P2P-backed — see <a href="13-collaborative-editing.html">13</a>)</td>
+</tr>
+<tr>
+<td><code>atomAccessManager</code></td>
+<td>Permissions: who may edit, upload, spawn (see <a href="10-networking.html">10</a>, <a href="12-writeback.html">12</a>)</td>
+</tr>
+<tr>
+<td><code>editRingManager</code></td>
+<td>Coordinates concurrent voxel editing across clients</td>
+</tr>
+<tr>
+<td><code>hubMetadata</code> / <code>spaceMetadata</code> / <code>voxMetadata</code></td>
+<td>Metadata sources feeding the UI</td>
+</tr>
+</tbody></table></div>
+<h3 id="5-physics--scene-loaded">5. Physics + scene loaded</h3>
+<p>When the scene fires <code>loaded</code>, <code>initPhysicsThreeAndCursor(scene)</code> runs (index.js:1180–1184) — Ammo.js
+(WASM Bullet) is synced with the three.js scene graph and cursor raycasting starts.</p>
+<h3 id="6-join-the-hub--configure-networking-srcinitjs250–359">6. Join the hub &amp; configure networking (<code>src/init.js:250–359</code>)</h3>
+<p><code>joinHub()</code> / <code>joinHubChannel()</code>:</p>
+<ol>
+<li>Resolve hub (world) metadata — geometry type, spawn point, <strong>worker URL</strong> (the Cloudflare worker used for P2P signaling).</li>
+<li>Configure NAF: <code>scene.setAttribute(&quot;networked-scene&quot;, { room: hub.hub_id, adapter: &quot;p2pcf&quot;, app: &quot;webspace&quot;, adapterOptions: { workerUrl } })</code>.</li>
+<li>Subscribe to NAF datachannel messages: <code>chat</code>, <code>reactji</code>, <code>emoji_launch</code>/<code>emoji_burst</code>,
+<code>update_hub_meta</code>, <code>update_vox_meta</code>, <code>edit_ring_message</code>, <code>upload_asset_request</code>,
+and <code>challenge</code>/<code>challenge_response</code> (Ed25519 identity challenges — see <a href="10-networking.html">10</a>).</li>
+</ol>
+<h3 id="7-import-the-document-into-the-world-srcinitjs279–290">7. Import the document into the world (<code>src/init.js:279–290</code>)</h3>
+<pre><code class="hljs language-js">scene.<span class="hljs-property">systems</span>.<span class="hljs-property">networked</span>.<span class="hljs-title function_">pause</span>();                       <span class="hljs-comment">// avoid races</span>
+<span class="hljs-keyword">new</span> <span class="hljs-title class_">WorldImporter</span>().<span class="hljs-title function_">importHtmlToCurrentWorld</span>(initialWorldHTML, <span class="hljs-literal">true</span>, <span class="hljs-literal">true</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function">() =&gt;</span> {
+  scene.<span class="hljs-property">systems</span>.<span class="hljs-property">networked</span>.<span class="hljs-title function_">play</span>();
+  scene.<span class="hljs-title function_">addState</span>(<span class="hljs-string">&quot;document-imported&quot;</span>);
+});
+</code></pre>
+<p><code>WorldImporter</code> (<code>src/utils/world-importer.js</code>) parses the captured HTML with <code>DOMParser</code>, converts
+each qualifying body child into a networked A-Frame entity, translating CSS 3D transforms into
+three.js transforms (<code>translate3d</code> cm→m, <code>rotate3d</code> deg→rad, <code>scale3d</code>). Details in
+<a href="06-dom-to-3d.html">06 — DOM ↔ 3D mapping</a>.</p>
+<p><strong>Deterministic IDs</strong> (index.js:827–867): each element&#39;s ID is derived from
+<code>SHA-256(el.outerHTML + index)</code> fed into a seeded RNG, producing a 7-char alphanumeric ID. Identical
+HTML yields identical IDs on every client, so peers agree on entity identity with zero coordination.
+Networked elements get the <code>naf-</code> prefix.</p>
+<h3 id="8-presence-srcinitjs361–453">8. Presence (<code>src/init.js:361–453</code>)</h3>
+<p><code>initPresence()</code> binds the P2P presence list to the UI and avatar system: join/leave/rename events
+emit <code>client-presence-updated</code>, post chat log entries (suppressed above 12 occupants), and dirty the
+avatar renderer.</p>
+<h3 id="9-enter-the-scene-srcscene-entry-managerjs">9. Enter the scene (<code>src/scene-entry-manager.js</code>)</h3>
+<p><code>entryManager.enterScene(false)</code> then:</p>
+<ul>
+<li><code>_setupPlayerRig()</code> — applies profile (name, avatar colors) to the rig.</li>
+<li><code>_setupMedia()</code> — registers the big family of creation events: <code>add_media</code> (URL/File → object),
+<code>add_media_text</code> (page/label/banner), <code>add_media_emoji</code>, <code>add_media_vox</code>,
+<code>add_media_exploded_pdf</code>, plus <code>action_share_screen</code> / <code>action_share_camera</code> for WebRTC capture.
+  Also drag-drop and paste handlers.</li>
+<li><code>_spawnAvatar()</code> — creates the networked avatar entity so peers see you.</li>
+<li><code>scene.addState(&quot;entered&quot;)</code> — systems that wait for entry (audio, input) go live.</li>
+</ul>
+<p>Finally the React UI remounts with <code>isDoneLoading: true</code> and the user is standing in the world.</p>
+<h3 id="10-post-boot-quality-scaling-srcindexjs402–567">10. Post-boot quality scaling (<code>src/index.js:~402–567</code>)</h3>
+<ul>
+<li>Boots at <strong>detail level 3</strong> (lowest) for fast first paint; when the initial terrain-chunk CPU spike
+ends (<code>terrain_chunk_cpu_spike_over</code> event), quality is boosted (detail 0 on hardware GL, pixel
+ratio raised) and <code>autoQualitySystem</code> starts tracking frame rate to degrade gracefully.</li>
+<li>Detail levels: 0 = full effects, 1 = no reflections, 2 = no FXAA, 3 = software-safe minimum (no SSAO/FXAA).</li>
+<li>On tab blur the entire scene pauses (A-Frame ticks, render loop, audio clock) to save CPU/battery —
+with a platform-dependent debounce (0ms Linux, 5s elsewhere).</li>
+</ul>
+<h3 id="flat-projection-mode">Flat projection mode</h3>
+<p>Documents that are &quot;pages&quot; rather than &quot;worlds&quot; render in <code>PROJECTION_TYPES.FLAT</code>: the same engine
+runs, but with an orthographic camera and 2D-page styling (UI gets the <code>projection-flat</code> class). This
+is how a webspace can double as a normal-looking web page. (Several todo.txt items relate to polishing
+flat mode.)</p>
+<h3 id="the-service-worker-srcwebspaceservicejs">The service worker (<code>src/webspace.service.js</code>)</h3>
+<p>Users copy <code>webspace.service.js</code> next to their HTML file. It&#39;s tiny: it intercepts fetches and adds
+<code>Cross-Origin-Embedder-Policy: credentialless</code> / <code>Cross-Origin-Opener-Policy: same-origin</code> /
+<code>Cross-Origin-Resource-Policy: cross-origin</code> headers so <strong>SharedArrayBuffer</strong> works on static hosts
+(needed for WASM threading / audio worklets). It is versioned (<code>webspace.service.1.0.1.js</code>) for cache
+busting and only registers on non-<code>file:</code> origins; <code>file://</code> worlds work without it.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="04-architecture-overview.html"><span class="pn-dir">← Previous</span><span class="pn-title">04 — Architecture Overview</span></a>
+      <a class="pn-next" href="06-dom-to-3d.html"><span class="pn-dir">Next →</span><span class="pn-title">06 — The DOM ↔ 3D Mapping &amp; Webspace Document Format</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

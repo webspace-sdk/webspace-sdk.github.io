@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>24 — Forked &amp; Sibling Repos — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li class="current"><a href="24-sibling-repos.html" aria-current="page"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="24-—-forked--sibling-repos">24 — Forked &amp; Sibling Repos</h1>
+<p>Deep-dives on the three library repos in this folder and how the engine consumes them. (The SDK
+site has its own doc: <a href="23-sdk-site.html">23</a>.)</p>
+<h2 id="networked-aframe-fork-branch-webspacesmaster">networked-aframe (fork, branch <code>webspaces/master</code>)</h2>
+<p><strong>Role</strong>: the entity-sync layer (&quot;NAF&quot;). Upstream NAF syncs A-Frame entities over pluggable
+adapters using JSON; the Webspaces fork rebuilds the wire layer around <strong>binary serialization and
+P2P</strong>:</p>
+<ul>
+<li><strong>FlatBuffers protocol</strong> (<code>schema.fbs</code>, <code>NetworkedAframeSchema.ts</code>): <code>Message { data: SceneUpdate | CustomOp | DocSyncRequest | DocSyncResponse | DocUpdate | PresenceUpdate }</code>;
+<code>UpdateOp</code> carries network_id, creator, template, owner, last_owner_time, and components as a
+nested <strong>FlexBuffer</strong>; <code>DeleteOp</code>; MessagePack for custom payloads. Compact enough for chatty
+transform sync over data channels.</li>
+<li><strong>P2PCFAdapter</strong> (<code>src/adapters/P2PCFAdapter.js</code>): peer discovery through a Cloudflare Worker,
+then WebRTC mesh; handles voice tracks with SDP tuning (mono, 64 kbps) and <strong>viseme bytes
+appended to encoded audio frames</strong> via insertable streams (<a href="11-voice.html">11</a>).</li>
+<li><strong>Presence</strong> via Yjs Awareness (<code>PresenceUpdate</code> messages) instead of a server roster.</li>
+<li><strong>Master-client</strong> concept: persistent entities get adopted when their creator disconnects.</li>
+<li>Core files: <code>src/NetworkConnection.js</code>, <code>src/NetworkEntities.js</code>, <code>src/components/networked.js</code>,
+<code>src/Schemas.js</code>, <code>src/Lerper.js</code> (interpolation), <code>src/FlexBufferUtils.js</code>.</li>
+<li>Late commits (through 2022-12-30): p2pcf bumps/tuning, dropped a Yjs doc-sync protocol (moved to
+the engine&#39;s edit rings), viseme work, serialization fixes.</li>
+</ul>
+<p><strong>Engine coupling</strong>: templates/schemas live on the engine side (<code>aframe-dom.js</code>,
+<code>network-schemas.js</code>); deterministic IDs come from the engine (<a href="06-dom-to-3d.html">06</a>).</p>
+<h2 id="quill-fork-engine-pins-webspacesmaster">quill (fork; engine pins <code>#webspaces/master</code>)</h2>
+<p><strong>Role</strong>: the rich-text editor behind in-world text objects (<a href="15-text-and-quill.html">15</a>). The local
+checkout is on upstream <code>develop</code> (mid-TypeScript migration, ~2022-07); the engine consumes the
+<code>webspaces/master</code> branch from GitHub. Fork motivations: deterministic render-to-texture, shadow-
+DOM/pooled lifecycle friendliness, and pairing with the forked <code>quill-emoji</code> (<code>#jel-master</code>).
+Content model is Quill Deltas, which is also what syncs over Yjs and what <code>deltaOps</code> in the NAF
+schema carries.</p>
+<h2 id="smoothvoxels-the-svox-engine-npm-smoothvoxels128">smoothvoxels (the .svox engine; npm <code>smoothvoxels@1.2.8</code>)</h2>
+<p><strong>Role</strong>: voxel models that don&#39;t look blocky. A standalone library (with A-Frame/three.js entry
+points and a meshing worker) providing:</p>
+<ul>
+<li>The <strong>.svox model format</strong>: voxels + materials + directives — per-material <code>deform</code>
+(iterative smoothing with damping), <code>shape</code> warps (sphere/cylinder), <code>flatten</code>/<code>clamp</code>
+constraints, ambient occlusion, shells/outlines, lights, <code>scale/rotation/position</code>, palette-
+indexed voxels (1–8 bits/voxel, max dim 128).</li>
+<li><strong>SvoxMeshGenerator</strong>: model → positions/normals/colors/uvs/indices + bounds, ready for three.js.</li>
+<li><strong>Converters</strong>: <code>vox-to-svox</code> (full MagicaVoxel import incl. scene-graph chunks) and
+<code>img-to-svox</code> (image → voxel slab; powers the playground workflow).</li>
+<li>History: perf rewrites (typed arrays/bitfields, ~5×), custom fields (the engine stores
+stack-axis/snap metadata), mirroring and resize fixes; v1.2.8 final (2022-12-27).</li>
+</ul>
+<p><strong>Engine coupling</strong>: the engine embeds its own worker around <code>SvoxMeshGenerator</code>
+(<code>vox-mesher.worker.js</code>), serializes voxels through its own FlatBuffers schema
+(<code>webspace-engine/svox.fbs</code>), and layers instancing, editing, undo, and multiplayer on top
+(<a href="16-voxels.html">16</a>).</p>
+<h2 id="coupling-map">Coupling map</h2>
+<pre><code class="hljs">webspace-engine
+ ├─ networked-aframe#webspaces/master  → entity sync, presence, voice transport
+ ├─ quill#webspaces/master (+quill-emoji#jel-master) → text editing → Yjs → NAF edit rings
+ ├─ smoothvoxels@1.2.8                 → voxel model format + mesher (worker-wrapped)
+ └─ webspace-sdk.github.io             → not a dependency; the showcase &amp; service-worker host
+</code></pre>
+<p>All three libraries were effectively frozen at the end of 2022; from then on the engine evolved
+against pinned versions. If you resume work, treat their APIs as stable internal contracts.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="23-sdk-site.html"><span class="pn-dir">← Previous</span><span class="pn-title">23 — The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</span></a>
+      <a class="pn-next" href="25-build-deploy.html"><span class="pn-dir">Next →</span><span class="pn-title">25 — Build, Deploy &amp; Release</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

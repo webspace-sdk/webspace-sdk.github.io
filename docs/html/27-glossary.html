@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>27 — Glossary — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li class="current"><a href="27-glossary.html" aria-current="page"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="27-—-glossary">27 — Glossary</h1>
+<p>The codebase speaks three dialects (Hubs, Jel, Webspaces). Decoder ring:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>webspace</strong></td>
+<td>One HTML file rendered as a multiplayer 3D world (or flat page).</td>
+</tr>
+<tr>
+<td><strong>hub</strong></td>
+<td>Hubs-era word for a single world. <code>hub_id</code>, <code>hubChannel</code>, <code>hubCan()</code> all mean &quot;this world/document&quot;.</td>
+</tr>
+<tr>
+<td><strong>space</strong></td>
+<td>A collection of worlds under one origin — conceptually a site. Has an index document holding the nav tree.</td>
+</tr>
+<tr>
+<td><strong>atom</strong></td>
+<td>Generic unit in the metadata/permission system: a hub, a space, or a vox model. Hence <code>atomAccessManager</code>, atom metadata sources.</td>
+</tr>
+<tr>
+<td><strong>Jel</strong></td>
+<td>The author&#39;s pre-Webspaces project (Slack-like of 3D worlds); survives in dependency branches (<code>#jel/master</code>) and domains (<code>cors-proxy.jel.app</code>).</td>
+</tr>
+<tr>
+<td><strong>Reticulum</strong></td>
+<td>Hubs&#39; Phoenix backend. Mostly excised; names remain (<code>phx-reliable</code>, <code>accountChannel</code>, media search API).</td>
+</tr>
+<tr>
+<td><strong>Dialog</strong></td>
+<td>Hubs&#39; SFU voice server — replaced entirely by P2P WebRTC here.</td>
+</tr>
+<tr>
+<td><strong>NAF</strong></td>
+<td>networked-aframe, the entity sync library (forked, FlatBuffers + P2P).</td>
+</tr>
+<tr>
+<td><strong>p2pcf</strong></td>
+<td>&quot;P2P over CloudFlare&quot; — WebRTC signaling via a cheap Cloudflare Worker; the network adapter.</td>
+</tr>
+<tr>
+<td><strong>worker URL</strong></td>
+<td>The Cloudflare Worker endpoint a hub uses for p2pcf signaling (hub metadata).</td>
+</tr>
+<tr>
+<td><strong>template</strong></td>
+<td><code>&lt;template&gt;</code> in <code>aframe-dom.js</code> from which networked entities are stamped (<code>#interactable-media</code>, <code>#remote-avatar</code>…).</td>
+</tr>
+<tr>
+<td><strong>schema</strong></td>
+<td>Per-template whitelist of networked components (<code>network-schemas.js</code>).</td>
+</tr>
+<tr>
+<td><strong>ownership</strong></td>
+<td>Which client simulates/broadcasts an entity; transferred on grab; master client adopts orphans.</td>
+</tr>
+<tr>
+<td><strong>master writer</strong></td>
+<td>The one client persisting the document to its origin.</td>
+</tr>
+<tr>
+<td><strong>writeback</strong></td>
+<td>Saving the serialized document (and <code>assets/</code>) to its origin: file handle or GitHub commits.</td>
+</tr>
+<tr>
+<td><strong>origin</strong></td>
+<td>Where the world&#39;s file lives (<code>file:</code> folder, GitHub repo). <code>originState</code> = credential/repo validity.</td>
+</tr>
+<tr>
+<td><strong>edit ring</strong></td>
+<td>Gossip membership protocol for live co-edited docs (Yjs text, vox deltas) over data channels.</td>
+</tr>
+<tr>
+<td><strong>presence</strong></td>
+<td>Who&#39;s connected + profile state; Yjs Awareness over NAF.</td>
+</tr>
+<tr>
+<td><strong>persona / profile</strong></td>
+<td>Display name + avatar color stored in presence and local store.</td>
+</tr>
+<tr>
+<td><strong>projection type</strong></td>
+<td><code>spatial</code> (3D world) vs <code>flat</code> (2D page) rendering of the same document.</td>
+</tr>
+<tr>
+<td><strong>flat mode / page</strong></td>
+<td>A webspace rendered as a normal-looking web page.</td>
+</tr>
+<tr>
+<td><strong>world tree / nav</strong></td>
+<td>The hierarchy of a space&#39;s worlds, stored in the index HTML, shown in the left panel (rc-tree).</td>
+</tr>
+<tr>
+<td><strong>vox</strong></td>
+<td>A voxel model object (from .vox/.svox). <code>voxId = btoa(url)</code>.</td>
+</tr>
+<tr>
+<td><strong>svox / Smooth Voxels</strong></td>
+<td>The smoothed-voxel model format + library (<a href="16-voxels.html">16</a>).</td>
+</tr>
+<tr>
+<td><strong>voxmoji</strong></td>
+<td>Emoji extruded into voxel objects (atlas-instanced).</td>
+</tr>
+<tr>
+<td><strong>builder</strong></td>
+<td>The in-world voxel editing mode (right panel toggle; flying enabled).</td>
+</tr>
+<tr>
+<td><strong>launcher</strong></td>
+<td>The emoji-blaster mode (hold Space to fire equipped emoji).</td>
+</tr>
+<tr>
+<td><strong>equips</strong></td>
+<td>Your saved emoji/color slots (local store).</td>
+</tr>
+<tr>
+<td><strong>brush</strong></td>
+<td>Voxel editing tool state: type/mode/shape/size/color/crawl/mirror (<code>constants.js</code>).</td>
+</tr>
+<tr>
+<td><strong>terra</strong></td>
+<td>The procedural terrain subsystem (<code>src/terra/</code>, terra.worker).</td>
+</tr>
+<tr>
+<td><strong>chunk</strong></td>
+<td>64×64×256 terrain unit; 8 m square; world wraps at 8×8 chunks.</td>
+</tr>
+<tr>
+<td><strong>vertex curving</strong></td>
+<td>The shader that bends geometry over WORLD_RADIUS=1024 for the small-planet horizon.</td>
+</tr>
+<tr>
+<td><strong>wrapped entity</strong></td>
+<td>Object whose coordinates wrap with the toroidal world (<code>wrapped-entity-system</code>).</td>
+</tr>
+<tr>
+<td><strong>detail level</strong></td>
+<td>0 (full) → 3 (software-safe) quality tier on <code>window.APP</code>.</td>
+</tr>
+<tr>
+<td><strong>media presence</strong></td>
+<td>Distance-based load state of media: HIDDEN / PENDING / PRESENT.</td>
+</tr>
+<tr>
+<td><strong>chiclet</strong></td>
+<td>The slightly-3D plane geometry used for image/media cards.</td>
+</tr>
+<tr>
+<td><strong>hover menu</strong></td>
+<td>In-3D context menu over media (video controls, PDF pager…).</td>
+</tr>
+<tr>
+<td><strong>inspect</strong></td>
+<td>Camera mode orbiting a focused object.</td>
+</tr>
+<tr>
+<td><strong>duck / quack</strong></td>
+<td>The ceremonial Hubs duck. Spawnable. Quacks.</td>
+</tr>
+<tr>
+<td><strong>MSDF</strong></td>
+<td>Multi-channel signed distance field text (nametags/labels), vs Quill canvas text.</td>
+</tr>
+<tr>
+<td><strong>viseme</strong></td>
+<td>Mouth-shape index derived from voice, synced by appending bytes to audio frames.</td>
+</tr>
+<tr>
+<td><strong>AEC hack</strong></td>
+<td>Chrome echo-cancellation workaround (loopback peer connection).</td>
+</tr>
+<tr>
+<td><strong>COEP / credentialless</strong></td>
+<td>Cross-origin isolation headers the service worker adds so SharedArrayBuffer works.</td>
+</tr>
+<tr>
+<td><strong>DOM_ROOT</strong></td>
+<td>The shadow root on <code>&lt;body&gt;</code> where the scene + UI actually live.</td>
+</tr>
+<tr>
+<td><strong>light DOM</strong></td>
+<td>The original document — the durable, serialized world state.</td>
+</tr>
+<tr>
+<td><strong>deterministic IDs</strong></td>
+<td>7-char element IDs seeded from content hashes so peers agree without coordination.</td>
+</tr>
+<tr>
+<td><strong>fast-vixel</strong></td>
+<td>Path-traced voxel renderer fork used by the vox pipeline.</td>
+</tr>
+<tr>
+<td><strong>three-batch-manager</strong></td>
+<td>Hubs library batching many media meshes into few draws.</td>
+</tr>
+<tr>
+<td><strong>hubs-systems</strong></td>
+<td>The A-Frame system that instantiates and ticks all custom systems in order.</td>
+</tr>
+<tr>
+<td><strong>action path</strong></td>
+<td>Named input signal in the userinput framework (<code>/actions/...</code>), produced by device bindings.</td>
+</tr>
+</tbody></table></div>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="26-unfinished-work.html"><span class="pn-dir">← Previous</span><span class="pn-title">26 — Known Issues &amp; Unfinished Work</span></a>
+      <a class="pn-next" href="28-atrium-integration.html"><span class="pn-dir">Next →</span><span class="pn-title">28 — Webspaces × Atrium: Integration Analysis</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

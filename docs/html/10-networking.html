@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10 — Networking Architecture — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li class="current"><a href="10-networking.html" aria-current="page"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="10-—-networking-architecture">10 — Networking Architecture</h1>
+<p>How N browsers looking at the same HTML file become one shared world with no dedicated game server.</p>
+<h2 id="topology">Topology</h2>
+<pre><code class="hljs">                   Cloudflare Worker  (p2pcf signaling — the only &quot;server&quot;)
+                    ▲    ▲    ▲   (worker URL from hub metadata / meta tags)
+        signaling   │    │    │
+              ┌─────┘    │    └─────┐
+           Browser A ⇄ Browser B ⇄ Browser C     full WebRTC mesh
+             (data channels: entity sync, chat, edit rings, challenges;
+              media tracks: voice, screen share)
+</code></pre>
+<ul>
+<li><strong>Adapter</strong>: <code>p2pcf</code> — configured in <code>src/init.js:336–344</code> via
+<code>scene.setAttribute(&quot;networked-scene&quot;, { room: hub.hub_id, adapter: &quot;p2pcf&quot;, app: &quot;webspace&quot;, adapterOptions: { workerUrl } })</code>.
+P2PCF is a Cloudflare-Workers-based signaling scheme (cheap, stateless); after discovery, peers
+are a direct WebRTC mesh. TURN configuration in the document was still a todo.</li>
+<li><strong>Legacy layer</strong>: Phoenix/Reticulum plumbing (<code>src/utils/phoenix-utils.js</code>, <code>accountChannel</code>,
+media search) survives from Hubs; <code>NAF.options.syncSource = &quot;phx-reliable&quot;</code> names persist. The
+todo list marks most of it for removal. No Reticulum is needed to run a world.</li>
+</ul>
+<h2 id="entity-sync-the-networked-aframe-fork">Entity sync: the networked-aframe fork</h2>
+<p>The fork (<code>networked-aframe</code> repo here, branch <code>webspaces/master</code>) replaces upstream NAF&#39;s JSON
+protocol with <strong>binary FlatBuffers</strong> (<code>schema.fbs</code>): a <code>Message</code> union of <code>SceneUpdate</code>
+(UpdateOp/DeleteOp), <code>CustomOp</code>, doc-sync ops, and <code>PresenceUpdate</code>. Component values are nested
+<strong>FlexBuffers</strong>; custom data is MessagePack. Key source: <code>src/NetworkConnection.js</code>,
+<code>src/NetworkEntities.js</code>, <code>src/adapters/P2PCFAdapter.js</code>, <code>src/Lerper.js</code> (interpolation).</p>
+<p>Concepts:</p>
+<ul>
+<li><strong>Templates</strong>: entities instantiate from the <code>&lt;template&gt;</code>s in <code>aframe-dom.js</code>; local vs remote
+copies get different behavior.</li>
+<li><strong>Schemas</strong> (<code>webspace-engine/src/network-schemas.js</code>): whitelists of synced components per
+template with <strong>epsilon gating</strong> — position syncs only on &gt;1 mm change, rotation &gt;0.5 rad, so
+continuous motion costs ~1–2 updates/s. Avatar schema also syncs camera + controller poses;
+media schema syncs <code>media-loader</code> fields, text deltas, video time (non-authorized), PDF page.</li>
+<li><strong>Ownership</strong>: each entity has one owner who simulates and broadcasts it; <code>takeOwnership()</code>
+transfers (grabbing an object takes it). Non-owned bodies are kinematic. A <strong>master client</strong>
+adopts persistent entities when their creator leaves.</li>
+<li><strong>Deterministic IDs</strong>: network IDs derive from document content (<a href="06-dom-to-3d.html">06</a>), so peers
+loading the same file agree on identity without negotiation.</li>
+</ul>
+<h2 id="data-channels-srcinitjs116–250">Data channels (<code>src/init.js:116–250</code>)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Purpose</th>
+<th>Permission</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>chat</code></td>
+<td>chat messages</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>reactji</code></td>
+<td>emoji reactions at an avatar</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>emoji_launch</code> / <code>emoji_burst</code></td>
+<td>projectile playback</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>update_hub_meta</code></td>
+<td>world metadata changes</td>
+<td><code>update_hub_meta</code></td>
+</tr>
+<tr>
+<td><code>update_vox_meta</code></td>
+<td>voxel model metadata</td>
+<td><code>edit_vox</code></td>
+</tr>
+<tr>
+<td><code>update_nav</code></td>
+<td>space tree / index HTML updates</td>
+<td><code>edit_nav</code></td>
+</tr>
+<tr>
+<td><code>edit_ring_message</code></td>
+<td>Yjs deltas + doc sync (<a href="13-collaborative-editing.html">13</a>)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>upload_asset_request</code></td>
+<td>ask a privileged peer to store an asset</td>
+<td><code>upload_files</code></td>
+</tr>
+<tr>
+<td><code>challenge</code> / <code>challenge_response</code></td>
+<td>Ed25519 identity verification</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p>Send via <code>NAF.connection.broadcastCustomDataGuaranteed(type, payload)</code> or
+<code>sendCustomDataGuaranteed(type, payload, clientId)</code>.</p>
+<h2 id="presence--identity">Presence &amp; identity</h2>
+<ul>
+<li><strong>Presence</strong> rides Yjs&#39;s Awareness protocol inside the NAF fork (<code>PresenceUpdate</code> messages).
+Per-client state: <code>{ profile: { displayName, persona.avatar.primary_color }, context, sync_ring_memberships }</code>. <code>initPresence()</code> (<code>src/init.js:361–453</code>) wires join/leave/update to UI
+and avatar rendering; join/leave chat notices are suppressed above 12 occupants.</li>
+<li><strong>Identity = keypair, not account.</strong> Each client holds an ECDSA keypair in its local store
+(<code>src/storage/store.js</code> <code>credentials</code>). The world&#39;s owner public key is in the
+<code>webspace.keys.owner</code> meta tag. Peers verify claims via <code>challenge</code>/<code>challenge_response</code>
+signatures. There is no login.</li>
+</ul>
+<h2 id="permissions-srcutilsatom-access-managerjs">Permissions (<code>src/utils/atom-access-manager.js</code>)</h2>
+<p>Per-atom-type roles resolved from document meta tags (<code>webspace.permissions.*</code>) + verified identity:</p>
+<ul>
+<li><strong>HUB</strong>: <code>update_hub_meta</code>, <code>spawn_and_move_media</code>, <code>upload_files</code>, <code>kick_users</code>, <code>fly</code>, …</li>
+<li><strong>SPACE</strong>: <code>create_world_hub</code>, <code>edit_nav</code>.</li>
+<li><strong>VOX</strong>: <code>edit_vox</code>.</li>
+</ul>
+<p>Checked everywhere as <code>atomAccessManager.hubCan(...)</code> / <code>spaceCan(...)</code> / <code>voxCan(...)</code>.
+<code>content_change_role</code> (owner|member) decides whether visitors may edit. Note the todo:
+&quot;authorize + sanitize in NAF adapter&quot; — inbound-update authorization hardening was unfinished.</p>
+<h2 id="whats-synced-by-which-mechanism-summary">What&#39;s synced by which mechanism (summary)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>State</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Object transforms, media fields</td>
+<td>NAF schemas (FlatBuffers, epsilon-gated)</td>
+</tr>
+<tr>
+<td>Rich text</td>
+<td>Yjs CRDT deltas over <code>edit_ring_message</code></td>
+</tr>
+<tr>
+<td>Voxel edits</td>
+<td>delta ring via <code>editRingManager</code> + <code>update_vox_meta</code></td>
+</tr>
+<tr>
+<td>World/space metadata, nav tree</td>
+<td>full-doc/metadata broadcasts (<code>update_hub_meta</code>, <code>update_nav</code>)</td>
+</tr>
+<tr>
+<td>Voice, screen share</td>
+<td>WebRTC media tracks (see <a href="11-voice.html">11</a>)</td>
+</tr>
+<tr>
+<td>Who&#39;s here, names, colors</td>
+<td>Yjs Awareness presence</td>
+</tr>
+<tr>
+<td>The document itself</td>
+<td>writeback to origin (<a href="12-writeback.html">12</a>) — late joiners just load the file</td>
+</tr>
+</tbody></table></div>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="09-media-pipeline.html"><span class="pn-dir">← Previous</span><span class="pn-title">09 — Media Pipeline: How a URL Becomes an Object</span></a>
+      <a class="pn-next" href="11-voice.html"><span class="pn-dir">Next →</span><span class="pn-title">11 — Voice Chat &amp; Audio</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

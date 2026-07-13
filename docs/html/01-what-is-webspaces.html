@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 — What is Webspaces? — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li class="current"><a href="01-what-is-webspaces.html" aria-current="page"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="01-—-what-is-webspaces">01 — What is Webspaces?</h1>
+<h2 id="the-idea">The idea</h2>
+<p>Webspaces makes 3D multiplayer worlds out of <strong>plain HTML files</strong>. Not &quot;HTML that describes a scene
+for a server to host&quot; — the HTML file <em>is</em> the world, the way an HTML file <em>is</em> a web page:</p>
+<ul>
+<li>You create a <code>.html</code> file with a single <code>&lt;script src=&quot;https://webspace.run&quot;&gt;&lt;/script&gt;</code> include.</li>
+<li>Opening it in Chrome renders the document as a walkable, first-person 3D world.</li>
+<li>The <code>&lt;body&gt;</code>&#39;s children are the world&#39;s objects: an <code>&lt;img&gt;</code> is a floating picture, a <code>&lt;video&gt;</code> is a
+screen (YouTube URLs work), a <code>&lt;model type=&quot;model/vnd.svox&quot;&gt;</code> is a voxel sculpture, a
+<code>&lt;label contenteditable&gt;</code> is an editable rich-text sign. Position, rotation, and scale are ordinary
+CSS 3D transforms (<code>translate3d(…cm) rotate3d(…) scale3d(…)</code>).</li>
+<li>Everyone who opens the same URL is <strong>in the world together</strong> — avatars, voice chat, live editing —
+with no game server: peers find each other through a tiny Cloudflare Worker and talk over WebRTC.</li>
+<li>Edits made in-world (dragging objects, typing text, sculpting voxels) mutate the DOM, and the DOM
+is <strong>written back</strong> to wherever the file lives: your local disk (File System Access API) or a
+GitHub repo (commits via the API). Host on GitHub Pages and your world is published, versioned,
+and forkable.</li>
+</ul>
+<p>The tagline used publicly was <strong>&quot;Rebooting the Web in 3D&quot;</strong>: bringing the original properties of the
+web — view-source, copy-and-tweak, static hosting, no lock-in — to 3D social spaces.</p>
+<h2 id="lineage-hubs-→-jel-→-webspaces">Lineage: Hubs → Jel → Webspaces</h2>
+<p>The engine is a heavily evolved descendant of <strong>Mozilla Hubs</strong> (the open-source social-VR platform),
+by way of the author&#39;s intermediate project <strong>Jel</strong> (&quot;the communication tool for people who make
+things&quot; — a Slack-like of 3D worlds). The migration path explains most of what you&#39;ll see in the code:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Inherited from Hubs</th>
+<th>Replaced/added in Jel &amp; Webspaces</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A-Frame ECS, <code>hubs-systems</code> tick orchestration</td>
+<td>DOM-as-world-document model, shadow-DOM isolation</td>
+</tr>
+<tr>
+<td>Ammo.js physics, media loader, interaction system</td>
+<td>P2P networking (p2pcf on Cloudflare) instead of Reticulum/Dialog servers</td>
+</tr>
+<tr>
+<td>Reticulum-era names: &quot;hub&quot; (a world), channels, presence</td>
+<td>Writeback to file/GitHub instead of server-side storage</td>
+</tr>
+<tr>
+<td>Avatar rig, IK, nametags</td>
+<td>Procedural voxel terrain, in-world voxel editor (SmoothVoxels), instanced toon avatars</td>
+</tr>
+<tr>
+<td>React UI shell</td>
+<td>Quill+Yjs collaborative text, world-tree navigation, emoji launcher</td>
+</tr>
+</tbody></table></div>
+<p>You will constantly encounter all three vocabularies: <code>hub</code> = a world, <code>space</code> = a collection of
+worlds (a site/folder of pages), <code>atom</code> = the generic unit (hub/space/vox) in the permission system,
+and <code>jel</code>/<code>reticulum</code>/<code>dialog</code> in leftover names and dependency branches. See the
+<a href="27-glossary.html">glossary</a>.</p>
+<h2 id="what-makes-it-technically-interesting">What makes it technically interesting</h2>
+<ol>
+<li><strong>The DOM is the scene graph&#39;s source of truth.</strong> The engine snapshots <code>document.body</code>, attaches a
+shadow root over it, renders the world from the snapshot, and serializes runtime changes back into
+the light DOM. Saving a world = saving an HTML file. View-source works.</li>
+<li><strong>Deterministic identity without a server.</strong> Entity IDs are seeded hashes of element HTML, so any
+two clients loading the same file independently agree about every object&#39;s network identity.</li>
+<li><strong>Serverless multiplayer.</strong> Peer discovery uses <code>p2pcf</code> (a Cloudflare Worker + WebRTC); state sync
+is networked-aframe with FlatBuffers serialization; text is Yjs CRDTs gossiped over data channels;
+voice is direct WebRTC with WASM noise-gating and lip-sync viseme extraction.</li>
+<li><strong>Ownership via cryptography, not accounts.</strong> A world&#39;s <code>&lt;head&gt;</code> embeds the owner&#39;s public key in a
+<code>&lt;meta name=&quot;webspace.keys.owner&quot;&gt;</code> tag; clients prove identity by Ed25519 challenge/response over
+the data channel. Permissions (<code>content_change_role</code> etc.) are also meta tags.</li>
+<li><strong>A full game engine in one JS file</strong>: procedural terrain with a curved-world shader, voxel
+sculpting with undo and multiplayer edit rings, physics in a worker over SharedArrayBuffer,
+instanced avatars, SSAO/FXAA postprocessing, MSDF text, PDFs, HLS/DASH video, screen share.</li>
+</ol>
+<h2 id="project-status-as-of-the-last-commits-2025-12-05">Project status (as of the last commits, 2025-12-05)</h2>
+<p>The project reached a polished 0.9 state and was paused. What exists and works:</p>
+<ul>
+<li>The full engine (<code>webspace-engine</code>), deployable as one script to <code>webspace.run</code>.</li>
+<li>The public tutorial site (<code>webspaces.space</code>) whose docs pages are themselves webspaces.</li>
+<li>File and GitHub writeback, multiplayer, voice, terrain, voxel editing, text editing.</li>
+</ul>
+<p>What was left undone is catalogued in <a href="26-unfinished-work.html">26 — Unfinished work</a>: mobile/tablet
+polish, PWA support, iOS quirks, a batch of voxel-editor UX items, dead-code cleanup of remaining
+Hubs infrastructure, and launch content (blog post, READMEs, tweet thread — i.e. it was paused close
+to, but before, a public push).</p>
+<h2 id="where-to-go-next">Where to go next</h2>
+<ul>
+<li>Hands-on: <a href="03-getting-started.html">03 — Getting started</a></li>
+<li>Big picture: <a href="04-architecture-overview.html">04 — Architecture overview</a></li>
+<li>The whole doc map: <a href="README.html">README</a></li>
+</ul>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="index.html"><span class="pn-dir">← Previous</span><span class="pn-title">Webspaces Documentation</span></a>
+      <a class="pn-next" href="02-repo-layout.html"><span class="pn-dir">Next →</span><span class="pn-title">02 — Repository Layout</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

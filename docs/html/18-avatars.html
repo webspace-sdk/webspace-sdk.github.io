@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>18 — Avatars — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li class="current"><a href="18-avatars.html" aria-current="page"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="18-—-avatars">18 — Avatars</h1>
+<p>Webspaces avatars are deliberately simple and cheap: instanced, toon-shaded, colorable &quot;orbs with
+eyes&quot; that blink, glance, bob, and lip-sync — hundreds render in a few draw calls.</p>
+<h2 id="rendering-srcsystemsavatar-systemjs">Rendering (<code>src/systems/avatar-system.js</code>)</h2>
+<ul>
+<li>All remote avatars draw through a <code>DynamicInstancedMesh</code> (<code>AvatarSphereBufferGeometry</code>, radius
+0.4) with a toon material and a decal texture atlas (<code>avatar-sheet.png</code>, Basis-compressed
+variant available).</li>
+<li><strong>Eyes</strong>: 8 decal states (neutral, up/down/left/right, blink 1–3). Per-frame probabilities:
+blink 0.5%, glance 0.5%; blink frames 25 ms; glance lasts 500 ms. Plus a sine bob per instance.</li>
+<li><strong>Mouth</strong>: viseme decals driven by voice lip sync (<a href="11-voice.html">11</a>); the 2D <code>avatar-swatch</code> in
+the UI animates the same states.</li>
+<li><strong>Color</strong>: per-instance color from presence (<code>profile.persona.avatar.primary_color</code>), edited via
+the self-panel color picker.</li>
+<li>Stencil ref 2 excludes avatars from SSAO; <code>INSTANCED_AVATAR</code> renders late (<a href="19-rendering.html">19</a>).</li>
+</ul>
+<h2 id="the-rig-srcaframe-domjs307–401">The rig (<code>src/aframe-dom.js:307–401</code>)</h2>
+<p>Your local player is a full Hubs-style rig even though the visible body is simple:</p>
+<pre><code class="hljs">#avatar-rig (ik-root, player-info, periodic-full-syncs)
+├── #avatar-pov-node (camera, y=1.6)
+├── player-left/right-controller (track-pose, teleporter, hand-controls2)
+└── model (gltf-model-plus, skinned)
+    ├── AvatarRoot (ik-controller)
+    ├── Neck (nametag billboard — MSDF text)
+    ├── Spine (personal-space-bubble)
+    ├── Head (avatar-audio-source, body-helper)
+    └── Left/RightHand (bone-visibility, hover visuals)
+</code></pre>
+<ul>
+<li><code>ik-controller.js</code> solves head/hands from camera + controller poses (hip-rooted; eased
+spring steps for squeeze/jump feel). In VR, controllers drive hands; on desktop they&#39;re hidden
+via bone-visibility.</li>
+<li><code>networked-avatar</code> + the <code>#remote-avatar</code> NAF schema sync position/rotation (epsilon-gated),
+camera and controller poses, <code>player-info</code>, and avatar state; <code>periodic-full-syncs</code> guards
+against drift.</li>
+<li>Position persistence: your last position/rotation per world is saved every second to the hub
+store, so you respawn where you left (<a href="05-boot-sequence.html">05</a>).</li>
+</ul>
+<h2 id="presence--identity">Presence &amp; identity</h2>
+<p>Display name (3–32 chars, <code>^[A-Za-z0-9 -]+$</code>) and color live in presence, editable in the self
+panel; nametags billboard at the neck. Kick/block plumbing exists from Hubs
+(<code>scene-entry-manager._setupKicking</code>). Identity is the local keypair (<a href="10-networking.html">10</a>).</p>
+<p>Todos in this area: &quot;bring in avatar audio system&quot;, muted ring indicator, making labels/banners
+spawn larger.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="17-terrain.html"><span class="pn-dir">← Previous</span><span class="pn-title">17 — Terrain</span></a>
+      <a class="pn-next" href="19-rendering.html"><span class="pn-dir">Next →</span><span class="pn-title">19 — Rendering Pipeline</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

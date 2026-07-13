@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>20 — Physics — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li class="current"><a href="20-physics.html" aria-current="page"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="20-—-physics">20 — Physics</h1>
+<p>Bullet physics (Ammo.js WASM) in a <strong>web worker</strong>, talking to the main thread through a shared
+matrix buffer. Forks: <code>ammo.js#jel/master</code>, <code>three-ammo#jel/master</code>, <code>ammo-debug-drawer</code>.</p>
+<h2 id="architecture-srcsystemsphysics-systemjs">Architecture (<code>src/systems/physics-system.js</code>)</h2>
+<ul>
+<li>The worker (three-ammo&#39;s AmmoWorker) owns the Bullet world: gravity (0, −9.8, 0), ~90 Hz step,
+<code>MAX_BODIES = 512</code>, debug wireframe drawer available.</li>
+<li>Main-thread ↔ worker transform sync via one <code>ArrayBuffer</code> viewed as <code>Float32Array</code>/<code>Int32Array</code>
+of per-body matrices — zero-copy-ish, ownership transferred back and forth (message types INIT /
+BODY_READY / SHAPES_READY / TRANSFER_DATA).</li>
+<li><code>bodyUuidToData</code> maps bodies to entities; ready/reset callbacks per body.</li>
+</ul>
+<h2 id="declaring-physics-on-entities">Declaring physics on entities</h2>
+<ul>
+<li><code>body-helper</code> — body type (dynamic/kinematic/static), mass, <code>collisionFilterGroup/Mask</code>.</li>
+<li><code>shape-helper</code> — box/sphere/cylinder/cone/plane/hull shapes; media auto-generate box/hull.</li>
+<li><code>heightfield</code> — terrain chunks (<a href="17-terrain.html">17</a>).</li>
+<li>Voxel models get shapes computed from voxel data by VoxSystem.</li>
+</ul>
+<h2 id="collision-layers-srcconstantsjs1">Collision layers (<code>src/constants.js:1</code>)</h2>
+<p>Bitmask groups: INTERACTABLES 1, ENVIRONMENT 2, AVATAR 4, HANDS 8, PROJECTILES 16, BURSTS 32.
+Composites: <code>DEFAULT_INTERACTABLE = 31</code> (everything but bursts), <code>UNOWNED_INTERACTABLE = 25</code>,
+<code>ENVIRONMENTAL_VOX = 17</code>, <code>DEFAULT_SPAWNER = 9</code>.</p>
+<h2 id="ownership--kinematics">Ownership &amp; kinematics</h2>
+<p>Only the network owner simulates an object dynamically; everyone else&#39;s copy is kinematic
+(<code>set-unowned-body-kinematic</code>) and follows NAF lerps. Grabbing = take ownership + hand↔body
+constraint (<code>constraints-system.js</code>); release restores <code>floaty-object</code> behavior (low/zero gravity
+float, auto-lock).</p>
+<h2 id="consumers">Consumers</h2>
+<ul>
+<li><strong>Character controller</strong> — grounding raycasts, jump ballistics, walkable surfaces (incl. GLB
+walkability via floor/wall colliders, one of the final features).</li>
+<li><strong>Cursor/interaction</strong> — obstacle checks; note the late optimization &quot;stop computing bounding box
+for every raycast&quot;.</li>
+<li><strong>Projectiles</strong> (emoji launcher) — PROJECTILES/BURSTS layers, <code>projectile-system.js</code>.</li>
+<li><strong>Transform system</strong> — ground detection for snap/stack.</li>
+</ul>
+<p>Physics debug: ammo-debug-drawer renders wireframes when enabled (helpers-system/debug flags).</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="19-rendering.html"><span class="pn-dir">← Previous</span><span class="pn-title">19 — Rendering Pipeline</span></a>
+      <a class="pn-next" href="21-workers-wasm.html"><span class="pn-dir">Next →</span><span class="pn-title">21 — Workers, Worklets &amp; WASM</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

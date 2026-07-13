@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>19 — Rendering Pipeline — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li class="current"><a href="19-rendering.html" aria-current="page"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="19-—-rendering-pipeline">19 — Rendering Pipeline</h1>
+<p>three.js r141 (forked), WebGL2, heavy batching/instancing, a curved-world vertex shader, and a
+combined SSAO+FXAA post pass. Sources: <code>src/effects/</code>, <code>src/materials/</code>, <code>src/objects/</code>,
+<code>src/loaders/</code>, plus shader injection in systems.</p>
+<h2 id="the-threejs-fork">The three.js fork</h2>
+<p><code>three: github:webspace-sdk/three.js#webspaces-patches-141-2</code>, plus A-Frame fork
+<code>#hubs-141-upgrade</code>. Patches support vertex curving hooks, instancing/stencil needs, and a boot
+patch prevents shader program disposal. Global <code>THREE.Object3D.DefaultMatrixAutoUpdate = false</code> —
+manual matrix updates everywhere.</p>
+<h2 id="draw-organization">Draw organization</h2>
+<ul>
+<li><strong>Render order</strong> (<code>src/constants.js:16</code>): LIGHTS 0 → HUD 1–2 → TERRAIN 10 → FIELD 100 →
+PHYSICS_DEBUG 1000 → VOX 5000 → MEDIA 10000 → MEDIA_NO_FXAA 10010 → TOON 20000 →
+INSTANCED_AVATAR 21000 → INSTANCED_BEAM 22000 → SKY 100000 → HELPERS → CURSOR →
+PICTURE_IN_PICTURE. The 20000+ range renders last for stencil tricks (toon/avatar surfaces write
+stencil ref 2 so the SSAO pass skips them).</li>
+<li><strong>Batching</strong>: <code>@mozillareality/three-batch-manager</code> merges media meshes into large batches.</li>
+<li><strong>Instancing</strong>: <code>src/objects/DynamicInstancedMesh.js</code> — InstancedMesh with a free-index pool and
+pooled per-instance attributes (Matrix4/Vector3/Vector4/float); used by avatars, vox models,
+voxmoji, sky beams.</li>
+</ul>
+<h2 id="the-curved-world">The curved world</h2>
+<p><code>addVertexCurvingToShader()</code> (in <code>terrain-system.js</code>, applied via onBeforeCompile across terrain,
+vox, avatar, media, and beam materials) maps vertex positions through a complex exponential with
+<code>WORLD_RADIUS = 1024</code>, bending geometry down toward a horizon — the world reads as a small planet
+while remaining planar (and wrapping) in logic. Any new material must opt in or it will float
+visibly off the curve.</p>
+<h2 id="post-processing-srceffects">Post-processing (<code>src/effects/</code>)</h2>
+<p><code>effects-system.js</code> runs a composer whose main pass is <code>cube-ssao.js</code>: a combined <strong>SSAO + FXAA</strong>
+shader (aoClamp 0.55, lumInfluence 0.7, fog-aware, depth+stencil texture; stencil-masked to skip
+avatars/toon). Modes toggle AO/FXAA/copy per detail level (<a href="05-boot-sequence.html">05</a>): detail 0 =
+both, 2 = no FXAA, 3 = neither. &quot;Precompile SSAO pass to avoid load hitch&quot; is a known todo.
+<code>fxaa-shader.js</code> holds the FXAA implementation.</p>
+<h2 id="materials-srcmaterials-srcutilsmaterial-utilsjs">Materials (<code>src/materials/</code>, <code>src/utils/material-utils.js</code>)</h2>
+<ul>
+<li><code>MobileStandardMaterial</code> — cut-down StandardMaterial swapped in on low quality
+(<code>convertStandardMaterial</code>, <code>mapMaterials</code> traversal).</li>
+<li>Voxel terrain material — palette-texture shader (<a href="17-terrain.html">17</a>).</li>
+<li>VOX vertex-color shader / SVOX toon gradient material / voxmoji atlas material
+(<a href="16-voxels.html">16</a>).</li>
+<li>Highlight/hover effects via <code>hoverable-visuals</code> shader uniforms.</li>
+</ul>
+<p>Tone mapping: ACES + sRGB, owned by <code>atmosphere-system.js</code>, which also runs water
+reflection/refraction pre-passes and shadow maps (<a href="17-terrain.html">17</a>).</p>
+<h2 id="loaders-srcloaders">Loaders (<code>src/loaders/</code>)</h2>
+<ul>
+<li><code>HubsBasisTextureLoader</code> — Basis Universal supercompressed textures, 4-worker transcode pool,
+target format by GPU support (ASTC/BC3/PVRTC/ETC1).</li>
+<li><code>HubsTextureLoader</code> — general textures incl. KTX2.</li>
+<li>glTF via <code>gltf-model-plus</code> (+ Draco decoders aliased in webpack; Basis/Draco codec paths).</li>
+<li><code>VOXLoader</code> in <code>src/objects/</code>.</li>
+</ul>
+<h2 id="text-rendering">Text rendering</h2>
+<p>MSDF (multi-channel signed distance field) via three-bmfont-text with a bundled Roboto atlas
+(<code>src/fonts/Roboto-msdf.*</code>), anisotropy 16 — crisp at any scale/angle; used for nametags and 3D
+labels (<code>hubs-text</code>). Quill text renders to canvas textures instead (<a href="15-text-and-quill.html">15</a>).</p>
+<h2 id="quality-scaling">Quality scaling</h2>
+<p><code>App.detailLevel</code> 0–3 + <code>auto-quality-system.js</code> (framerate tracking) govern pixel ratio, effects,
+material quality (<code>low</code> on mobile), shadows, reflections. Software-GL detection pins detail 3.
+&quot;Clean up per-frame allocations&quot; remains a todo — be careful adding per-tick garbage.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="18-avatars.html"><span class="pn-dir">← Previous</span><span class="pn-title">18 — Avatars</span></a>
+      <a class="pn-next" href="20-physics.html"><span class="pn-dir">Next →</span><span class="pn-title">20 — Physics</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

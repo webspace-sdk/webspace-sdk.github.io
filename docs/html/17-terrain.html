@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>17 — Terrain — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li><a href="14-ui-layer.html"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li class="current"><a href="17-terrain.html" aria-current="page"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="17-—-terrain">17 — Terrain</h1>
+<p>Every world can have an infinite(-feeling) procedurally generated landscape, defined entirely by a
+few meta tags: a generator type, a seed, and eight colors. Code: <code>src/terra/</code> (generation) +
+<code>src/systems/terrain-system.js</code> (client management) + <code>src/workers/terra.worker.js</code>.</p>
+<h2 id="configuration-document-meta-tags">Configuration (document meta tags)</h2>
+<pre><code class="hljs language-html"><span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.type&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;terrain&quot;</span> /&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.terrain.type&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;plains&quot;</span> /&gt;</span>  <span class="hljs-comment">&lt;!-- islands|hills|plains|flat --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.terrain.seed&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;117&quot;</span> /&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;webspace.environment.terrain.colors.ground|sky|water|grass|rock|bark|leaves|edge&quot;</span> <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;#…&quot;</span> /&gt;</span>
+</code></pre>
+<p>Same seed + type ⇒ identical terrain for every visitor, no terrain data stored anywhere.</p>
+<h2 id="generation-srcterra">Generation (<code>src/terra/</code>)</h2>
+<ul>
+<li><code>generator.js</code> — FastNoise WASM (<code>src/wasm/fastnoise-wasm.js</code>) 4D simplex noise, <strong>circularly
+tiled</strong> so the world wraps seamlessly. Generator types ISLANDS / HILLY / PLAINS / FLAT compose
+height layers (terrain, plateau, peaks), place features (trees/vegetation via a feature
+callback), detect edges/overhangs. Colors come from height-indexed maps with noise perturbation;
+separate low-LOD colors.</li>
+<li><code>chunk.js</code> — chunks are 64×64 columns × 256 max height; per-voxel fields
+<code>[type, r, g, b, lowres-rgb, palette]</code> in one Uint8Array; heightmap per chunk; 4 vertical
+subchunks meshed independently.</li>
+<li><code>mesher.js</code> — greedy meshing, quads capped at 12 to avoid seams; separate opaque/transparent
+(water) geometry.</li>
+<li><code>constants.js</code> — <code>VOXEL_SIZE = 1/8 m</code>, <code>VOXELS_PER_CHUNK = 64</code> ⇒ chunk = 8 m; world is 8×8 chunks
+wrapping; <code>WATER_LEVEL = 4</code>.</li>
+<li>Chunks travel encoded as protobufs (<code>protocol.Chunks</code>).</li>
+</ul>
+<h2 id="the-worker-srcworkersterraworkerjs">The worker (<code>src/workers/terra.worker.js</code>)</h2>
+<p>One <code>World</code> per (seed, generator type). Priority-queued jobs; results cached in IndexedDB <code>terra</code>
+keyed <code>type/mesher/seed/x/z/CHUNK_VERSION</code>, so revisits are instant. (Historic note: a &quot;terra
+server&quot; on Arweave appears in <code>.defaults.env</code> — superseded by local generation.)</p>
+<h2 id="client-management-srcsystemsterrain-systemjs">Client management (<code>src/systems/terrain-system.js</code>)</h2>
+<ul>
+<li>Load radius 3 chunks (6 in director mode), requested nearest-first from a precomputed sorted
+grid; wrap-aware coordinate normalization (<code>wrapped-entity-system</code> wraps entities/avatars too).</li>
+<li>Builds render meshes with a voxel palette-texture material and <strong>the vertex-curving shader</strong>
+(<code>addVertexCurvingToShader</code>): positions are bent over <code>WORLD_RADIUS = 1024</code> via a complex-
+exponential map, giving the signature &quot;small planet&quot; horizon. The same curve is injected into
+vox/avatar/media shaders so everything bends consistently (<a href="19-rendering.html">19</a>).</li>
+<li>Physics: static heightfield bodies per chunk (<a href="20-physics.html">20</a>); character grounding raycasts
+against them (<a href="07-systems.html">07</a>).</li>
+<li>Fires <code>terrain_chunk_loaded</code> and the boot-time <code>terrain_chunk_cpu_spike_over</code> that triggers the
+initial quality boost (<a href="05-boot-sequence.html">05</a>).</li>
+<li><code>updateWorldColors()</code> re-palettes terrain live when environment settings change (UI:
+environment-settings popup).</li>
+</ul>
+<h2 id="environment-around-it">Environment around it</h2>
+<p>Water plane (reflection/refraction within radius 2 chunks), sky dome, sun/ambient/fog — owned by
+<code>atmosphere-system.js</code>, colored from the same palette. Grass/field detail (&quot;FIELD&quot; render order)
+pops in around the player; &quot;grass popping in late&quot; and &quot;fog color should match sky&quot; are known
+todos, as are &quot;disable LOD on flat + plains&quot; and pushing chunks to origin on first edit.</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="16-voxels.html"><span class="pn-dir">← Previous</span><span class="pn-title">16 — Voxels &amp; SmoothVoxels</span></a>
+      <a class="pn-next" href="18-avatars.html"><span class="pn-dir">Next →</span><span class="pn-title">18 — Avatars</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>

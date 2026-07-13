@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>14 — The UI Layer (React) — Webspaces Docs</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <a class="site-title" href="index.html">Webspaces<span> Docs</span></a>
+    <ul class="chapters">
+      <li><a href="index.html">Overview</a></li>
+      <li><a href="01-what-is-webspaces.html"><span class="ch-num">01</span>What is Webspaces?</a></li>
+      <li><a href="02-repo-layout.html"><span class="ch-num">02</span>Repository Layout</a></li>
+      <li><a href="03-getting-started.html"><span class="ch-num">03</span>Getting Started as a Developer</a></li>
+      <li><a href="04-architecture-overview.html"><span class="ch-num">04</span>Architecture Overview</a></li>
+      <li><a href="05-boot-sequence.html"><span class="ch-num">05</span>Boot Sequence</a></li>
+      <li><a href="06-dom-to-3d.html"><span class="ch-num">06</span>The DOM ↔ 3D Mapping &amp; Webspace Document Format</a></li>
+      <li><a href="07-systems.html"><span class="ch-num">07</span>Systems Inventory</a></li>
+      <li><a href="08-components.html"><span class="ch-num">08</span>Components Inventory</a></li>
+      <li><a href="09-media-pipeline.html"><span class="ch-num">09</span>Media Pipeline</a></li>
+      <li><a href="10-networking.html"><span class="ch-num">10</span>Networking Architecture</a></li>
+      <li><a href="11-voice.html"><span class="ch-num">11</span>Voice Chat &amp; Audio</a></li>
+      <li><a href="12-writeback.html"><span class="ch-num">12</span>Writeback &amp; Persistence</a></li>
+      <li><a href="13-collaborative-editing.html"><span class="ch-num">13</span>Collaborative Editing</a></li>
+      <li class="current"><a href="14-ui-layer.html" aria-current="page"><span class="ch-num">14</span>The UI Layer (React)</a></li>
+      <li><a href="15-text-and-quill.html"><span class="ch-num">15</span>Text &amp; Quill</a></li>
+      <li><a href="16-voxels.html"><span class="ch-num">16</span>Voxels &amp; SmoothVoxels</a></li>
+      <li><a href="17-terrain.html"><span class="ch-num">17</span>Terrain</a></li>
+      <li><a href="18-avatars.html"><span class="ch-num">18</span>Avatars</a></li>
+      <li><a href="19-rendering.html"><span class="ch-num">19</span>Rendering Pipeline</a></li>
+      <li><a href="20-physics.html"><span class="ch-num">20</span>Physics</a></li>
+      <li><a href="21-workers-wasm.html"><span class="ch-num">21</span>Workers, Worklets &amp; WASM</a></li>
+      <li><a href="22-meta-tags-and-service.html"><span class="ch-num">22</span>Configuration Surface</a></li>
+      <li><a href="23-sdk-site.html"><span class="ch-num">23</span>The Public Site &amp; Tutorial Worlds (webspace-sdk.github.io)</a></li>
+      <li><a href="24-sibling-repos.html"><span class="ch-num">24</span>Forked &amp; Sibling Repos</a></li>
+      <li><a href="25-build-deploy.html"><span class="ch-num">25</span>Build, Deploy &amp; Release</a></li>
+      <li><a href="26-unfinished-work.html"><span class="ch-num">26</span>Known Issues &amp; Unfinished Work</a></li>
+      <li><a href="27-glossary.html"><span class="ch-num">27</span>Glossary</a></li>
+      <li><a href="28-atrium-integration.html"><span class="ch-num">28</span>Webspaces × Atrium</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+<h1 id="14-—-the-ui-layer-react">14 — The UI Layer (React)</h1>
+<p>All 2D UI lives in <code>webspace-engine/src/ui/</code> — ~61 React components (plus 25 Storybook stories),
+styled-components, react-intl, mounted <strong>inside the shadow root</strong> next to the 3D canvas.</p>
+<h2 id="mounting--engine-bridge">Mounting &amp; engine bridge</h2>
+<ul>
+<li>React renders into <code>DOM_ROOT.getElementById(&quot;react-root&quot;)</code> (<code>src/index.js:248</code>), inside the shadow
+root attached at boot. Styles are injected as one bundle (<code>src/styles.js</code>: normalize, A-Frame,
+Tippy, Quill, highlight.js, theme + tree SCSS) via styled-components&#39; <code>StyleSheetManager</code>
+targeting <code>DOM_ROOT</code>. <code>react-shadow-dom-retarget-events</code> re-targets React&#39;s synthetic events
+across the shadow boundary.</li>
+<li>UI ↔ engine communication is untyped but consistent: read/write <code>window.APP</code> (store, channels,
+atomAccessManager, metadata sources), call <code>SYSTEMS.*</code> directly (launcher/builder/camera/
+uiAnimation/soundEffects/vox/characterController), and listen for scene events
+(<code>action_chat_entry</code>, <code>add_media_vox</code>, <code>presence-synced</code>, <code>navigating-away</code>, …).</li>
+</ul>
+<h2 id="component-tree-root-ui-rootjs">Component tree (root: <code>ui-root.js</code>)</h2>
+<p><code>UIRoot</code> wraps everything in <code>StyleSheetManager</code> + <code>WrappedIntlProvider</code> + React Router, tracks
+top-level state (mute, launcher-vs-builder trigger mode, tree data, loading), and branches on
+projection type (SPATIAL vs FLAT). Its main children:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Files</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Left panel</strong></td>
+<td><code>left-panel.js</code>, <code>hub-tree.js</code>, <code>space-tree.js</code>, <code>hub-node-title.js</code>, <code>hub-context-menu.js</code>, <code>rename-popup.js</code>, <code>invite-panel.js</code>, <code>create-file-object-popup.js</code></td>
+<td>Space banner (editable w/ <code>update_space_meta</code>), invite button, and the <strong>world tree</strong> — rc-tree of the space&#39;s hubs with drag-reorder, context menus (rename, spawn point, permissions), and &quot;add world&quot;. Tree hooks in <code>src/utils/tree-utils.js</code> (<code>useTreeData</code>, <code>useExpandableTree</code>, drop handler).</td>
+</tr>
+<tr>
+<td><strong>Right panel</strong></td>
+<td><code>right-panel.js</code>, <code>presence-list.js</code>, <code>emoji-equip.js</code>, <code>builder-controls.js</code>, <code>segment-control.js</code></td>
+<td>Mode toggle Launcher/Builder. Launcher: presence list (avatars, names, teleport-to) + emoji equip slots with picker. Builder: brush tool segment control (pick/fill/box/sphere), size, color swatches.</td>
+</tr>
+<tr>
+<td><strong>Canvas top HUD</strong></td>
+<td><code>canvas-top.js</code>, <code>create-select-popup.js</code>/<code>create-select.js</code>, <code>environment-settings-popup.js</code>, <code>hub-permissions-popup.js</code>, <code>writeback-setup-popup.js</code></td>
+<td>Back button, editable world title, corner buttons: hub menu, permissions, environment settings (terrain colors/type), invite, create (<code>/</code> menu — fuse.js-searchable create list).</td>
+</tr>
+<tr>
+<td><strong>Chat</strong></td>
+<td><code>chat-log.js</code>, <code>chat-input-popup.js</code>, <code>chat-input-panel.js</code></td>
+<td>Space-key chat input popup; auto-hiding log (15s) bottom-left; linkify + emoji rendering; sends via <code>hubChannel.broadcastMessage</code>.</td>
+</tr>
+<tr>
+<td><strong>Self panel</strong></td>
+<td><code>self-panel.js</code>, <code>avatar-swatch.js</code>, <code>avatar-editor-popup.js</code>, <code>profile-editor-popup.js</code>, <code>device-selector-popup.js</code></td>
+<td>Bottom-left you: 2D avatar swatch (eyes + viseme mouth animate live), name, mic mute, color picker (react-color, writes <code>persona.avatar.primary_color</code> into presence), display name editor, audio device picker.</td>
+</tr>
+<tr>
+<td><strong>Popups root</strong></td>
+<td><code>root-popups.js</code>, <code>create-embed-popup.js</code></td>
+<td>Scene-event-triggered dialogs: embed-by-URL, create .svox file object, chat input. Popper.js positioning via <code>popup-utils.js</code> hooks.</td>
+</tr>
+<tr>
+<td><strong>Key tips</strong></td>
+<td><code>key-tips.js</code></td>
+<td>Bottom-right shortcut legend, right-click to toggle, hidden on mobile.</td>
+</tr>
+<tr>
+<td><strong>Loading panel</strong></td>
+<td><code>loading-panel.js</code></td>
+<td>Boot overlay until <code>isDoneLoading</code>.</td>
+</tr>
+<tr>
+<td><strong>Misc overlays</strong></td>
+<td>paused label, external camera canvas, equipped-status icons (<code>equipped-emoji-icon.js</code> etc.), <code>atom-trail.js</code> breadcrumbs, <code>snackbar.js</code>-style notices</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<p>Primitives: <code>action-button</code> (+small/tiny), <code>icon-button</code>, <code>panel-item-button</code>,
+<code>panel-section-header</code>, <code>popup-menu</code>/<code>popup-panel-menu</code>, <code>floating-text-input</code>, <code>form-components</code>
+(Label/Checkbox/Radio), <code>tooltip.js</code> (Tippy), <code>layer-pager</code>, <code>segment-control</code>.</p>
+<h2 id="theming-i18n-storybook">Theming, i18n, Storybook</h2>
+<ul>
+<li><strong>Theming</strong>: styled-components + CSS custom properties (<code>--panel-background-color</code>,
+<code>--action-button-*</code>, <code>--menu-*</code>, <code>--canvas-overlay-*</code> …) set by <code>src/utils/theme.js</code>; overridable
+via <code>window.APP_CONFIG.theme</code>. Layout state via body classes: <code>.panels-collapsed</code>, <code>.paused</code>,
+<code>.projection-flat</code>.</li>
+<li><strong>i18n</strong>: react-intl v5; <code>wrapped-intl-provider.js</code> re-renders on <code>locale-updated</code>; locale JSONs in
+<code>src/assets/locales/</code>; detection in <code>src/utils/i18n.js</code> with fallbacks to <code>en</code>. (&quot;Remove unused
+translations&quot; is a todo.)</li>
+<li><strong>Storybook</strong> 6 (<code>npm run storybook</code>, port 6006): 25 stories covering most primitives and popups —
+the fastest way to see the design system.</li>
+</ul>
+<h2 id="assets">Assets</h2>
+<p><code>src/assets/images/icons/</code> (~80 inline SVGs, <code>.svgi</code>), avatar SVG parts + viseme mouth shapes,
+HUD 9-patches, cubemap, MSDF fonts, spritesheets (regenerate via <code>npm run spritesheet</code>).</p>
+
+    <nav class="prev-next">
+      <a class="pn-prev" href="13-collaborative-editing.html"><span class="pn-dir">← Previous</span><span class="pn-title">13 — Collaborative Editing: Yjs, Edit Rings, Tree Sync</span></a>
+      <a class="pn-next" href="15-text-and-quill.html"><span class="pn-dir">Next →</span><span class="pn-title">15 — Text &amp; Quill: In-World Rich Text</span></a>
+    </nav>
+  </main>
+</div>
+</body>
+</html>
