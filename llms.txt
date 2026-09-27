@@ -16,7 +16,7 @@ or "build a 3D world as a web page", everything you need is here. Produce a sing
 
 - Stable: `<script src="https://webspace.run"></script>`
 - Preview, with everything marked **(preview)** below (Gaussian splats, scripting, night skies):
-  `<script src="https://webspaces.space/run/0.10.0-alpha.2/webspace.js"></script>`
+  `<script src="https://webspaces.space/run/0.10.0-alpha.3/webspace.js"></script>`
   Versioned preview URLs never change, so a world that pins one keeps working.
 
 ## The smallest world
@@ -57,8 +57,9 @@ Every direct child of `<body>` is one object in the world. Its tag chooses what 
 | `<a href="other-world.html">` | A portal/link to another world or page |
 
 Attributes:
-- `id="abc1234"`: seven lowercase letters/digits. Optional in hand-written files (the engine assigns
-  deterministic ids on load), but keep ids stable once assigned.
+- `id="lamp"`: optional. **(preview)** Any id that starts with a letter and uses letters, digits, `-` or `_`
+  is kept, so scripts can find objects with `getElementById`. (The stable engine only keeps 7-character
+  lowercase ids like `abc1234` and renames others.) Keep ids stable once a world is published.
 - `draggable`: people can grab and move it in-world. Omit to lock it in place.
 - `contenteditable`: text people can edit in-world.
 - `hidden`: not shown.
@@ -194,7 +195,8 @@ naturally in sync for everyone.
 - `webspace.state` is a shared key/value store (JSON values, last writer wins), synced peer to peer, and
   late joiners receive it.
 - Useful properties: `style.transform`, `style.opacity` and `style.mixBlendMode` (splats), `hidden`,
-  `src`/`href` (swaps media).
+  `src`/`href` (swaps media), and `innerHTML`/`textContent` of text objects (`sign.innerHTML = "<h1>Score: 5</h1>"`).
+- Emoji objects use a built-in voxel emoji set; very new emoji (e.g. 🪨) may not be available.
 - Time-based motion (`Date.now()`) looks identical for everyone; use `webspace.state` for things people cause.
 - Events: `click`, `pointerenter`, `pointerleave` on body elements.
 
