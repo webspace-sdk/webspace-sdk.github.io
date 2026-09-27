@@ -33,9 +33,9 @@ or "build a 3D world as a web page", everything you need is here. Produce a sing
 Open it in Chrome (from disk or any HTTPS host) and you spawn in as an avatar. Anyone who opens the same URL
 is in the world with you: avatars, voice, and live co-editing, peer to peer.
 
-When hosted over HTTP(S), also place `webspace.service.js` next to the HTML (copy it from
-https://webspaces.space/webspace.service.js). It is a tiny service worker that enables cross-origin
-isolation, which the engine needs.
+When hosted over HTTP(S), also place `webspace.service.1.0.1.js` next to the HTML (copy it from
+https://webspaces.space/webspace.service.1.0.1.js). It is a tiny service worker that enables cross-origin
+isolation, which the engine needs. (Worlds saved by the engine write this file for you.)
 
 ## Objects are elements
 
@@ -211,7 +211,7 @@ to move (right-drag), scale, rotate, or edit voxels.
 - **GitHub**: host on GitHub Pages; the world can commit its own edits back to the repo with a fine-grained
   token, so anyone you trust can edit it live.
 - **Anywhere static**: it's just HTML plus assets (`.svox`, `.glb`, `.spz`, images) in the same folder.
-  Relative `src` paths keep a world portable.
+  Relative `src` paths keep a world portable. Keep `webspace.service.1.0.1.js` beside each world's HTML.
 
 ## Taste
 
