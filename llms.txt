@@ -1,0 +1,220 @@
+# Webspaces
+
+> Webspaces turns a plain HTML file into a walkable, multiplayer 3D world. One `<script>` tag upgrades the page;
+> the `<body>` holds the world's objects; CSS transforms place them in space; editing the world in the browser
+> edits the HTML and writes it back to where the file lives. Worlds are static files: host them anywhere.
+
+This file is written for both people and AI coding agents. If you are an agent asked to "make a webspace"
+or "build a 3D world as a web page", everything you need is here. Produce a single `.html` file.
+
+- Home (itself a webspace): https://webspaces.space
+- Engine source (MPL-2.0): https://github.com/webspace-sdk/webspace-engine
+- Launch post: https://gfodor.medium.com/rebooting-the-web-in-3d-with-webspaces-9e58847e042c
+- Showcase (worlds to read and remix): https://webspaces.space/showcase/
+
+## Which engine script to use
+
+- Stable: `<script src="https://webspace.run"></script>`
+- Preview, with everything marked **(preview)** below (Gaussian splats, scripting, night skies):
+  `<script src="https://webspaces.space/run/0.10.0-alpha.2/webspace.js"></script>`
+  Versioned preview URLs never change, so a world that pins one keeps working.
+
+## The smallest world
+
+```html
+<html>
+  <head>
+    <script src="https://webspace.run"></script>
+  </head>
+  <body></body>
+</html>
+```
+
+Open it in Chrome (from disk or any HTTPS host) and you spawn in as an avatar. Anyone who opens the same URL
+is in the world with you: avatars, voice, and live co-editing, peer to peer.
+
+When hosted over HTTP(S), also place `webspace.service.js` next to the HTML (copy it from
+https://webspaces.space/webspace.service.js). It is a tiny service worker that enables cross-origin
+isolation, which the engine needs.
+
+## Objects are elements
+
+Every direct child of `<body>` is one object in the world. Its tag chooses what it is:
+
+| Markup | Object |
+|---|---|
+| `<img src="photo.jpg">` | A picture (GIF/WebP animate) |
+| `<video src="clip.mp4" autoplay loop muted>` | A screen. YouTube URLs work. HLS (`.m3u8`) and DASH (`.mpd`) streams work |
+| `<audio src="song.mp3">` | A positional sound source |
+| `<embed src="paper.pdf#page=3">` | A PDF you can page through |
+| `<model src="chair.svox">` | A Smooth Voxel model (plain-text voxel format, see below) |
+| `<model src="robot.glb">` | A glTF model (Draco compressed OK) |
+| `<model src="garden.spz">` | A Gaussian splat capture (`.spz`, `.ply`, `.splat`) of a real place or thing **(preview)** |
+| `<label><h1>Hello</h1></label>` | A text sign, sized to its content |
+| `<div>…rich HTML…</div>` | A text page (headings, lists, links, bold, etc.) |
+| `<marquee>Welcome</marquee>` | Big outlined banner text |
+| `<div style="font-family: emoji">🌵</div>` | A 3D voxel emoji |
+| `<a href="other-world.html">` | A portal/link to another world or page |
+
+Attributes:
+- `id="abc1234"`: seven lowercase letters/digits. Optional in hand-written files (the engine assigns
+  deterministic ids on load), but keep ids stable once assigned.
+- `draggable`: people can grab and move it in-world. Omit to lock it in place.
+- `contenteditable`: text people can edit in-world.
+- `hidden`: not shown.
+
+Style properties that matter: `transform` (placement, below), and for text: `color`,
+`background-color`, `font-family` (`sans-serif`, `serif`, `monospaced`, `fantasy`, `ui-rounded`,
+`cursive`, `emoji`), `width: min-content; height: min-content` (shrink-to-fit), `-webkit-text-stroke-color`
+(banner outline).
+
+## Placing things: CSS transforms, in centimeters
+
+```html
+<img src="sunset.jpg" style="transform: translate3d(0cm, 150cm, -400cm) rotate3d(0, 1, 0, 0.5rad) scale3d(2, 2, 2)">
+```
+
+- `translate3d(x, y, z)`: y is up; the default spawn looks toward -z. 100cm = 1 meter; ground level is y = 0
+  on flat worlds.
+- `rotate3d(ax, ay, az, angle)`: axis + angle (`rad` or `deg`).
+- `scale3d(sx, sy, sz)`.
+- **(preview)** Any CSS transform list works too: `translate3d(0cm, 300cm, -500cm) rotateX(-0.7rad) rotateY(1.2rad)`,
+  `matrix3d(...)`, etc. Use `cm` for lengths.
+- An eye-level object 4 meters in front of spawn: `translate3d(0cm, 160cm, -400cm)`.
+
+## The world itself: `<meta>` tags in `<head>`
+
+```html
+<title>My World</title>
+<meta name="webspace.environment.type" content="terrain" />
+<meta name="webspace.environment.terrain.type" content="islands" />   <!-- islands | hills | plains | flat -->
+<meta name="webspace.environment.terrain.seed" content="42" />
+<meta name="webspace.environment.terrain.colors.sky" content="#8ec5ff" />
+<meta name="webspace.environment.terrain.colors.ground" content="#3b6d3b" />
+<!-- other colors: edge, leaves, bark, rock, grass, water -->
+<meta name="webspace.environment.spawn_point.transform" content="translate3d(0cm, 0cm, 0cm) rotate3d(0, 1, 0, 0rad)" />
+```
+
+**(preview)** Big scenes and night:
+
+```html
+<meta name="webspace.environment.fog" content="off" />   <!-- see ~2km instead of the cozy ~25m default -->
+<meta name="webspace.environment.wrap" content="off" />  <!-- a plane, not a wrapping torus; needed for far-away objects -->
+<meta name="webspace.environment.terrain.colors.sky" content="#05060f" />  <!-- a dark sky color makes night -->
+```
+
+Choose a palette on purpose; the world's colors carry most of its mood. Terrain seeds change the land shape.
+`<meta name="webspace.projection.type" content="flat" />` makes the file a 2D page instead of a 3D world.
+Worlds and pages link to each other with plain `<a>` tags. A folder of them is a *webspace*: a website that has
+worlds as well as pages. An `index.html` with a `<nav><ul><li><a href="…">` list defines the site's menu.
+
+## Smooth Voxels (SVOX): 3D models as text
+
+SVOX is "markdown for 3D models". It's plain text, so you can write it by hand or generate it.
+
+```
+size = 7
+scale = 0.15 0.17 0.15
+origin = -y
+material lighting = smooth, roughness = 0.25, fade = true, deform = 3
+  colors = A:#C11 B:#F60 D:#000 C:#F93
+material lighting = smooth, roughness = 1, fade = true, deform = 3
+  colors = E:#840 F:#000
+voxels
+------- --AAA-- --AAA-- --AAA-- ------- ------- -------
+--AAA-- -BAAAA- -BAAAA- -BAAAA- -BAAAA- ------- -------
+-BADAA- BAAAAAA BAAAAAA BAAAAAA -B---A- ------- -------
+-BDDDA- BAAAAAA CAAAAAA CABAAAA -B-E-A- ---E--- ---FF--
+-BBDBA- BAAAAAA CAAAAAA CABBAAA -C---A- ------- -------
+--BBB-- -BAAAB- -CAAAB- -CAAAB- -CCBBB- ------- -------
+------- --BBB-- --CCB-- --CCB-- ------- ------- -------
+```
+
+That's an apple. Layout of `voxels`: each **line** is one z slice; within a line, each space-separated
+**group** is one y layer, bottom to top; each **character** is one x voxel. `-` is empty; letters are
+colors declared in a `material`. `size = x y z` (or one number for a cube). `scale` is meters per voxel.
+`origin = -y` puts the model's bottom at its placement point. `deform` smooths the shape and `lighting = smooth` shades it.
+The world's cel-shaded look comes from these; keep models small (< 32³) and let smoothing do the work.
+Save it as `apple.svox` and add `<model src="apple.svox">`, or paste the text directly into a world.
+Full reference: https://svox.glitch.me
+
+## Gaussian splats: real places and things
+
+```html
+<model src="scans/my-kitchen.spz" style="transform: translate3d(0cm, 0cm, 0cm) rotate3d(1, 0, 0, 3.14159rad)"></model>
+```
+
+**(preview)** Captures from phone apps (Scaniverse, Polycam, Luma, etc.) and 3DGS training exports work. `.spz` is the
+recommended format: roughly 10x smaller than `.ply`. Splats keep their real-world scale. Many captures come in
+upside down (y-down); flip them with `rotate3d(1, 0, 0, 3.14159rad)` as shown. Pair a splat with a
+`flat` terrain world so people can walk around inside it, and turn `fog` off for large places.
+
+Splats respond to CSS compositing: `style="mix-blend-mode: plus-lighter"` makes them additive, so they glow
+(great for stars, fire, magic, nebulae), and `opacity` fades them. Splats don't have to be scans: you can
+generate them with code. See https://github.com/webspace-sdk/showcase/tree/main/stargazer/make for a
+~100-line `.spz` writer and a procedural galaxy.
+
+## Making worlds come alive: it's just the DOM (preview)
+
+A world can include ordinary `<script>` tags. Scripts change the world by changing the document, and hear
+about the world through ordinary DOM events. Every visitor runs the same script, so script-driven motion is
+naturally in sync for everyone.
+
+```html
+<script type="module">
+  await webspace.ready;                               // objects exist now
+
+  const gift = document.getElementById("gift001");
+
+  // Animate: set style.transform like any web animation
+  (function spin(t) {
+    gift.style.transform = `translate3d(0cm, 150cm, -300cm) rotate3d(0, 1, 0, ${t / 1000}rad)`;
+    requestAnimationFrame(spin);
+  })(0);
+
+  // Interact: in-world clicks and hovers are DOM events
+  gift.addEventListener("click", () => webspace.state.set("opened", true));
+  gift.addEventListener("pointerenter", () => { /* hovered */ });
+
+  // Shared multiplayer state: everyone in the world sees the same values
+  webspace.state.addEventListener("change", e => {
+    if (e.detail.key === "opened") gift.hidden = true;
+  });
+
+  // Spawn things by adding elements
+  document.body.insertAdjacentHTML("beforeend",
+    `<div style="font-family: emoji; transform: translate3d(100cm, 150cm, -300cm)">🎉</div>`);
+
+  // Where is the viewer?  webspace.player.position -> { x, y, z } in meters
+</script>
+```
+
+- Changes made by scripts are *runtime* state. They're never saved into the file, so an animated world
+  doesn't rewrite itself. Changes people make in-world (dragging, typing, spawning) are *authored* state and are saved.
+- `webspace.state` is a shared key/value store (JSON values, last writer wins), synced peer to peer, and
+  late joiners receive it.
+- Useful properties: `style.transform`, `style.opacity` and `style.mixBlendMode` (splats), `hidden`,
+  `src`/`href` (swaps media).
+- Time-based motion (`Date.now()`) looks identical for everyone; use `webspace.state` for things people cause.
+- Events: `click`, `pointerenter`, `pointerleave` on body elements.
+
+## Controls (for your README)
+
+WASD to move, drag or Shift to look, Space to jump, `/` to create objects, Ctrl+V to paste images/URLs/SVOX,
+drag and drop files in, `~` or `@` to toggle the UI, `?` to hide tips. Hover an object and use the tips shown
+to move (right-drag), scale, rotate, or edit voxels.
+
+## Saving and publishing
+
+- **Local**: open the `.html` from disk in Chrome and grant folder access when asked. Edits save back to the
+  file (File System Access API).
+- **GitHub**: host on GitHub Pages; the world can commit its own edits back to the repo with a fine-grained
+  token, so anyone you trust can edit it live.
+- **Anywhere static**: it's just HTML plus assets (`.svox`, `.glb`, `.spz`, images) in the same folder.
+  Relative `src` paths keep a world portable.
+
+## Taste
+
+Webspaces worlds should feel like places, not tech demos. A strong palette, a sense of arrival at spawn,
+a few meaningful objects placed with care, text that speaks to the visitor, and something to do together.
+The house style is soft, cel-shaded, and timeless: smooth voxels, flat color, clean type.
