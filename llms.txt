@@ -17,7 +17,7 @@ or "build a 3D world as a web page", everything you need is here. Produce a sing
 
 - Stable: `<script src="https://webspace.run"></script>`
 - Preview, with everything marked **(preview)** below (Gaussian splats, scripting, night skies):
-  `<script src="https://webspaces.space/run/0.10.0-alpha.4/webspace.js"></script>`
+  `<script src="https://webspaces.space/run/0.10.0-alpha.5/webspace.js"></script>`
   Versioned preview URLs never change, so a world that pins one keeps working.
 
 ## The smallest world
@@ -76,14 +76,13 @@ Style properties that matter: `transform` (placement, below), and for text: `col
 <img src="sunset.jpg" style="transform: translate3d(0cm, 150cm, -400cm) rotate3d(0, 1, 0, 0.5rad) scale3d(2, 2, 2)">
 ```
 
-- `translate3d(x, y, z)`: y is up; the default spawn looks toward -z. 100cm = 1 meter; ground level is y = 0
-  on flat worlds.
+- `translate3d(x, y, z)`: y is up; the default spawn looks toward -z. 100cm = 1 meter. On `flat` terrain the ground is at y = 75cm.
 - `rotate3d(ax, ay, az, angle)`: axis + angle (`rad` or `deg`).
 - `scale3d(sx, sy, sz)`.
 - **(preview)** Any CSS transform list works too: `translate3d(0cm, 300cm, -500cm) rotateX(-0.7rad) rotateY(1.2rad)`,
   `matrix3d(...)`, etc. Use `cm` for lengths.
-- An eye-level object 4 meters in front of spawn: `translate3d(0cm, 160cm, -400cm)` on `flat` terrain.
-- On `hills`, `plains`, and `islands`, the ground near spawn is often 1–2 m above y = 0. Use `flat` for predictable
+- An eye-level object 4 meters in front of spawn on `flat` terrain: `translate3d(0cm, 235cm, -400cm)` (ground 75cm + eyes 160cm).
+- On `hills`, `plains`, and `islands`, the ground height varies (often 75–200cm near spawn). Use `flat` for predictable
   heights, or add ~150 cm.
 - Always give objects a transform. An object without one appears in front of each visitor separately.
 
@@ -199,7 +198,8 @@ naturally in sync for everyone.
 - `webspace.state` is a shared key/value store (JSON values, last writer wins), synced peer to peer, and
   late joiners receive it.
 - Useful properties: `style.transform`, `style.opacity` and `style.mixBlendMode` (splats), `hidden`,
-  `src`/`href` (swaps media), and `innerHTML`/`textContent` of text objects (`sign.innerHTML = "<h1>Score: 5</h1>"`).
+  `src`/`href` (swaps media), and `innerHTML`/`textContent` of text objects (`sign.innerHTML = "<h1>Score: 5</h1>"`) and emoji objects
+  (`bud.textContent = "🌷"`).
 - Emoji objects use a built-in voxel emoji set; very new emoji (e.g. 🪨) may not be available.
 - Time-based motion (`Date.now()`) looks identical for everyone; use `webspace.state` for things people cause.
 - Events: `click`, `pointerenter`, `pointerleave` on body elements.
