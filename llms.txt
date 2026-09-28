@@ -18,7 +18,7 @@ or "build a 3D world as a web page", everything you need is here. Produce a sing
 
 - Stable: `<script src="https://webspace.run"></script>`
 - Preview, with everything marked **(preview)** below (Gaussian splats, scripting, night skies):
-  `<script src="https://webspaces.space/run/0.10.0-alpha.9/webspace.js"></script>`
+  `<script src="https://webspaces.space/run/0.10.0-alpha.10/webspace.js"></script>`
   Versioned preview URLs never change, so a world that pins one keeps working.
 
 ## The smallest world
