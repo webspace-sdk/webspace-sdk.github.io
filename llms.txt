@@ -55,7 +55,7 @@ Every direct child of `<body>` is one object in the world. Its tag chooses what 
 | `<div>…rich HTML…</div>` | A text page (headings, lists, links, bold, etc.) |
 | `<marquee>Welcome</marquee>` | Big outlined banner text |
 | `<div style="font-family: emoji">🌵</div>` | A 3D voxel emoji |
-| `<a href="other-world.html">` | A portal/link to another world or page |
+| `<a href="other-world.html">` | A link to another world or page. Clicking it in-world follows it like any web link: in place, or in a new tab with `target="_blank"` |
 
 Attributes:
 - `id="lamp"`: optional. **(preview)** Any id that starts with a letter and uses letters, digits, `-` or `_`
