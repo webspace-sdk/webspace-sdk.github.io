@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recipes — Webspaces</title>
+<meta name="description" content="Short, copy-pasteable recipes for building webspaces: splats, real skies, night, shared clicks, animation, voxel models, VR." />
+<meta property="og:title" content="Webspaces Recipes" />
+<meta property="og:description" content="Short, copy-pasteable recipes for building multiplayer 3D worlds out of plain HTML." />
+<meta property="og:image" content="https://webspaces.space/showcase/campfire/preview.png" />
+<link rel="icon" href="https://webspaces.space/assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Spectral:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root { --night: #061139; --ink: #ecebf7; --dim: #9aa0c8; --faint: #3a4474; --ember: #ff8a4c;
+    --display: "Instrument Serif", Georgia, serif; --body: "Spectral", Georgia, serif; --mono: "IBM Plex Mono", ui-monospace, monospace; }
+  * { box-sizing: border-box; }
+  html { background: var(--night); }
+  body { margin: 0; color: var(--ink); font: 300 18px/1.65 var(--body);
+    background: radial-gradient(900px 500px at 85% -10%, #16266e55, transparent 70%), var(--night); }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 clamp(18px, 5vw, 56px); }
+  header { padding: clamp(56px, 9vw, 110px) 0 clamp(28px, 4vw, 48px); }
+  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin-bottom: 26px; }
+  .eyebrow a { text-decoration: none; border-bottom: 1px solid var(--faint); }
+  h1 { font: 400 clamp(48px, 8vw, 96px)/.95 var(--display); margin: 0 0 22px; }
+  h1 em { color: var(--dim); }
+  .lede { max-width: 58ch; color: var(--dim); margin: 0; }
+  .lede code { font: 400 14px var(--mono); color: #c9cdf0; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px 10px; margin: 34px 0 10px; }
+  nav.toc a { font: 500 12px var(--mono); letter-spacing: .06em; text-decoration: none; color: #c9cdf0; border: 1px solid var(--faint); border-radius: 999px; padding: 6px 12px; }
+  nav.toc a:hover { border-color: var(--ember); color: #fff; }
+  section.recipe { border-top: 1px solid #ffffff14; padding: 44px 0 10px; display: grid; grid-template-columns: 5fr 7fr; gap: clamp(20px, 4vw, 48px); }
+  @media (max-width: 820px) { section.recipe { grid-template-columns: 1fr; } }
+  .no { font: 500 12px var(--mono); letter-spacing: .2em; color: var(--ember); text-transform: uppercase; }
+  h2 { font: 400 clamp(32px, 4vw, 44px)/1.05 var(--display); margin: 10px 0 14px; }
+  .recipe p { margin: 0 0 14px; }
+  .recipe p code, li code { font: 400 14px var(--mono); color: #c9cdf0; background: #0b1846; padding: 1px 5px; border-radius: 3px; }
+  pre { margin: 0; font: 400 13px/1.65 var(--mono); color: #d6d9f5; background: #030a26; border: 1px solid #ffffff10; border-radius: 4px; padding: 16px 18px; overflow-x: auto; }
+  pre .c { color: #6b73a3; font-style: italic; } pre .t { color: #8fb4ff; } pre .a { color: #ffb38a; } pre .s { color: #b8e0a0; }
+  .see { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; margin-top: 16px; }
+  .see a { text-decoration: none; border-bottom: 1px solid var(--faint); }
+  .see a:hover { border-color: var(--ember); }
+  footer { border-top: 1px solid #ffffff14; margin-top: 50px; padding: 36px 0 70px; color: var(--dim); font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><a href="https://webspaces.space">Webspaces</a> &nbsp;/&nbsp; <a href="https://webspaces.space/showcase/">Showcase</a> &nbsp;/&nbsp; Recipes</div>
+    <h1>Recipes<em>.</em></h1>
+    <p class="lede">Small, copy-pasteable pieces for building worlds out of plain HTML. Every recipe works in a file that starts with the <a href="https://github.com/webspace-sdk/start">starter template</a>, and each one links to a world that uses it. For the full reference (and for your AI agent) see <a href="https://webspaces.space/llms.txt"><code>llms.txt</code></a>.</p>
+    <nav class="toc">
+      <a href="#world">A world in one file</a><a href="#splat">A splat capture</a><a href="#sky">A real sky</a><a href="#night">Night</a>
+      <a href="#click">A click everyone sees</a><a href="#animate">Animate with the clock</a><a href="#svox">A voxel model by hand</a>
+      <a href="#text">Text that changes</a><a href="#glow">Light that glows</a><a href="#vr">VR</a><a href="#host">Put it online</a>
+    </nav>
+  </header>
+
+  <section class="recipe" id="world">
+    <div><div class="no">01</div><h2>A world in one file</h2>
+      <p>One script tag makes the page a world. Everything in <code>&lt;body&gt;</code> is an object, placed with a CSS transform in centimeters. y is up, and you face −z when you arrive.</p>
+      <p>On <code>flat</code> terrain the ground is at 75cm, so eye level is about 235cm.</p>
+      <div class="see">See: <a href="https://github.com/webspace-sdk/start">starter template</a></div></div>
+<pre><span class="t">&lt;html&gt;</span>
+<span class="t">&lt;head&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">src</span>=<span class="s">"https://webspaces.space/run/0.10.0-alpha.9/webspace.js"</span><span class="t">&gt;&lt;/script&gt;</span>
+  <span class="t">&lt;meta</span> <span class="a">name</span>=<span class="s">"webspace.environment.terrain.type"</span> <span class="a">content</span>=<span class="s">"flat"</span> <span class="t">/&gt;</span>
+<span class="t">&lt;/head&gt;</span>
+<span class="t">&lt;body&gt;</span>
+  <span class="t">&lt;label</span> <span class="a">id</span>=<span class="s">"hello"</span> <span class="a">style</span>=<span class="s">"transform: translate3d(0cm, 235cm, -300cm)"</span><span class="t">&gt;</span>
+    <span class="t">&lt;h1&gt;</span>Hello<span class="t">&lt;/h1&gt;</span>
+  <span class="t">&lt;/label&gt;</span>
+  <span class="t">&lt;img</span> <span class="a">src</span>=<span class="s">"photo.jpg"</span> <span class="a">style</span>=<span class="s">"transform: translate3d(200cm, 235cm, -300cm) rotateY(-0.5rad)"</span><span class="t">&gt;</span>
+<span class="t">&lt;/body&gt;</span>
+<span class="t">&lt;/html&gt;</span></pre>
+  </section>
+
+  <section class="recipe" id="splat">
+    <div><div class="no">02</div><h2>A splat capture</h2>
+      <p>Scan something with a phone app (Scaniverse, Polycam, Luma…) and export <code>.spz</code> or <code>.ply</code>. It's one tag. Splats keep real-world scale.</p>
+      <p>Most <code>.ply</code> captures are upside down. Convert and tidy them with <a href="https://github.com/webspace-sdk/showcase/tree/main/specimen/make"><code>splat2spz.mjs</code></a> (<code>--flip --center</code>), which also makes them about 10× smaller.</p>
+      <div class="see">See: <a href="https://webspaces.space/showcase/specimen/">Specimen</a></div></div>
+<pre><span class="c">&lt;!-- a captured object, forty times life size --&gt;</span>
+<span class="t">&lt;model</span> <span class="a">id</span>=<span class="s">"cactus"</span> <span class="a">src</span>=<span class="s">"cactus.spz"</span>
+  <span class="a">style</span>=<span class="s">"transform: translate3d(0cm, 75cm, -500cm) scale3d(4, 4, 4)"</span><span class="t">&gt;&lt;/model&gt;</span>
+
+<span class="c">// convert a capture</span>
+node splat2spz.mjs scan.ply scan.spz --flip --center</pre>
+  </section>
+
+  <section class="recipe" id="sky">
+    <div><div class="no">03</div><h2>A real sky</h2>
+      <p>Any equirectangular (360°) photo can be the sky: phone panoramas, 360 cameras, or generated skyboxes.</p>
+      <p><a href="https://polyhaven.com/hdris">Poly Haven</a> has hundreds of CC0 skies. Download the tonemapped JPG, resize it to 4096×2048, and prefer the "puresky" variants. Turn fog off to see all of it.</p>
+      <div class="see">See: <a href="https://webspaces.space/showcase/campfire/">Campfire</a> · <a href="https://webspaces.space/showcase/specimen/">Specimen</a></div></div>
+<pre><span class="t">&lt;meta</span> <span class="a">name</span>=<span class="s">"webspace.environment.sky"</span> <span class="a">content</span>=<span class="s">"sky.jpg"</span> <span class="t">/&gt;</span>
+<span class="t">&lt;meta</span> <span class="a">name</span>=<span class="s">"webspace.environment.fog"</span> <span class="a">content</span>=<span class="s">"off"</span> <span class="t">/&gt;</span></pre>
+  </section>
+
+  <section class="recipe" id="night">
+    <div><div class="no">04</div><h2>Night</h2>
+      <p>A dark sky color makes night: the sky darkens and the world's light turns soft. Set the rest of the palette dark too. Things that glow (splats with additive blending) then carry the scene.</p>
+      <p>Far-away things, like a galaxy overhead, also need <code>fog</code> and <code>wrap</code> off.</p>
+      <div class="see">See: <a href="https://webspaces.space/showcase/stargazer/">Stargazer</a></div></div>
+<pre><span class="t">&lt;meta</span> <span class="a">name</span>=<span class="s">"webspace.environment.terrain.colors.sky"</span> <span class="a">content</span>=<span class="s">"#05060f"</span> <span class="t">/&gt;</span>
+<span class="t">&lt;meta</span> <span class="a">name</span>=<span class="s">"webspace.environment.terrain.colors.ground"</span> <span class="a">content</span>=<span class="s">"#10162b"</span> <span class="t">/&gt;</span>
+<span class="t">&lt;meta</span> <span class="a">name</span>=<span class="s">"webspace.environment.fog"</span> <span class="a">content</span>=<span class="s">"off"</span> <span class="t">/&gt;</span>
+<span class="t">&lt;meta</span> <span class="a">name</span>=<span class="s">"webspace.environment.wrap"</span> <span class="a">content</span>=<span class="s">"off"</span> <span class="t">/&gt;</span></pre>
+  </section>
+
+  <section class="recipe" id="click">
+    <div><div class="no">05</div><h2>A click everyone sees</h2>
+      <p>In-world clicks (mouse, touch, or a VR controller) arrive as ordinary <code>click</code> events. Put what happened into <code>webspace.state</code>, then react in a <code>change</code> listener, so everyone sees it, including people who arrive later.</p>
+      <div class="see">See: <a href="https://webspaces.space/showcase/stargazer/">Stargazer</a> · <a href="https://webspaces.space/showcase/tonegarden/">Tone Garden</a></div></div>
+<pre><span class="t">&lt;script</span> <span class="a">type</span>=<span class="s">"module"</span><span class="t">&gt;</span>
+  await webspace.ready;
+  const bell = document.getElementById(<span class="s">"bell"</span>);
+
+  bell.addEventListener(<span class="s">"click"</span>, () =>
+    webspace.state.set(<span class="s">"rung"</span>, Date.now()));
+
+  webspace.state.addEventListener(<span class="s">"change"</span>, e =&gt; {
+    if (e.detail.key === <span class="s">"rung"</span>) ring();   <span class="c">// runs for everyone</span>
+  });
+<span class="t">&lt;/script&gt;</span></pre>
+  </section>
+
+  <section class="recipe" id="animate">
+    <div><div class="no">06</div><h2>Animate with the clock</h2>
+      <p>Set <code>style.transform</code> every frame. Driving motion from <code>Date.now()</code> keeps it in step for everyone with no networking at all. Any CSS transform works, including <code>rotateY()</code> and <code>scale3d()</code>.</p>
+      <p>Changes made by scripts are never saved into the file, so it's safe to animate everything.</p>
+      <div class="see">See: <a href="https://webspaces.space/showcase/campfire/">Campfire</a></div></div>
+<pre>const moon = document.getElementById(<span class="s">"moon"</span>);
+(function orbit() {
+  const a = (Date.now() / 20000) % (2 * Math.PI);
+  moon.style.transform =
+    `translate3d(${Math.cos(a) * 600}cm, 500cm, ${Math.sin(a) * 600}cm)`;
+  requestAnimationFrame(orbit);
+})();</pre>
+  </section>
+
+  <section class="recipe" id="svox">
+    <div><div class="no">07</div><h2>A voxel model by hand</h2>
+      <p>SVOX is plain text. Each line is a z slice, each space-separated group is a y layer (bottom to top), and each character is an x voxel. <code>-</code> is empty; letters are colors. <code>deform</code> smooths the blocks into soft shapes.</p>
+      <p>Save it as <code>stone.svox</code>, then use <code>&lt;model src="stone.svox"&gt;</code>.</p>
+      <div class="see">See: <a href="https://github.com/webspace-sdk/showcase/blob/main/campfire/stone.svox">stone.svox</a> · <a href="https://svox.glitch.me">full reference</a></div></div>
+<pre>size = 5 3 5
+scale = 0.09
+origin = -y
+material lighting = smooth, roughness = 1, deform = 5
+  colors = D:#6f6a63 E:#57524c
+voxels
+-DDE- -DED- -----
+DDEDD DEDDE -DDE-
+DEDDE EDDED -DED-
+EDDED DDEDD -EDD-
+-DED- -EDD- -----</pre>
+  </section>
+
+  <section class="recipe" id="text">
+    <div><div class="no">08</div><h2>Text that changes</h2>
+      <p>Labels and emoji objects update from scripts like any element: set <code>innerHTML</code> on text, or <code>textContent</code> on an emoji.</p>
+      <div class="see">See: <a href="https://webspaces.space/showcase/tonegarden/">Tone Garden</a></div></div>
+<pre>document.getElementById(<span class="s">"score"</span>).innerHTML = <span class="s">"&lt;h1&gt;Score: 5&lt;/h1&gt;"</span>;
+document.getElementById(<span class="s">"bud"</span>).textContent = <span class="s">"🌷"</span>;</pre>
+  </section>
+
+  <section class="recipe" id="glow">
+    <div><div class="no">09</div><h2>Light that glows</h2>
+      <p>Splats don't have to be scans; they can be light. With <code>mix-blend-mode: plus-lighter</code>, overlapping splats add up like real light, which suits fire, stars, magic, and nebulae. <code>opacity</code> fades them.</p>
+      <p>Generate them with the ~100-line <a href="https://github.com/webspace-sdk/showcase/blob/main/campfire/make/spz-writer.mjs"><code>spz-writer.mjs</code></a>.</p>
+      <div class="see">See: <a href="https://github.com/webspace-sdk/showcase/tree/main/campfire/make">fire.mjs</a> · <a href="https://github.com/webspace-sdk/showcase/tree/main/stargazer/make">galaxy.mjs</a></div></div>
+<pre><span class="t">&lt;model</span> <span class="a">id</span>=<span class="s">"flame"</span> <span class="a">src</span>=<span class="s">"flame.spz"</span>
+  <span class="a">style</span>=<span class="s">"mix-blend-mode: plus-lighter;
+         transform: translate3d(0cm, 85cm, -250cm)"</span><span class="t">&gt;&lt;/model&gt;</span>
+
+<span class="c">// in node: one splat</span>
+encodeSpz([{ x: 0, y: 1, z: 0, sx: .1, sy: .1, sz: .1,
+             r: 1, g: .6, b: .2, a: .5 }]);</pre>
+  </section>
+
+  <section class="recipe" id="vr">
+    <div><div class="no">10</div><h2>VR</h2>
+      <p>Every world works in headset browsers. An <em>Enter VR</em> button appears when there's a headset. Thumbsticks walk and turn, and trigger or pinch clicks arrive as the same <code>click</code> events, so one script serves every device.</p>
+      <div class="see">See: any <a href="https://webspaces.space/showcase/">showcase</a> on a Quest</div></div>
+<pre>if (webspace.xr.isPresenting) { <span class="c">/* in a headset */</span> }
+
+<span class="c">// enter from your own button (must be a click handler)</span>
+button.addEventListener(<span class="s">"click"</span>, () =&gt; webspace.xr.enterVR());</pre>
+  </section>
+
+  <section class="recipe" id="host">
+    <div><div class="no">11</div><h2>Put it online</h2>
+      <p>A webspace is static files. Keep <code>webspace.service.1.0.1.js</code> next to each world's HTML and host it anywhere. With GitHub Pages, the world can also save in-world edits back to the repo.</p>
+      <div class="see">See: <a href="https://github.com/webspace-sdk/start">starter template</a></div></div>
+<pre><span class="c"># the fastest way</span>
+1. github.com/webspace-sdk/start → Use this template
+2. Settings → Pages → Deploy from main
+3. open https://&lt;you&gt;.github.io/&lt;repo&gt;/</pre>
+  </section>
+
+  <footer>Found something missing? Open an issue on <a href="https://github.com/webspace-sdk/webspace-engine/issues">the engine</a>. Built something? We'd love to see it.</footer>
+</div>
+</body>
+</html>
