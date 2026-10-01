@@ -143,7 +143,8 @@ node splat2spz.mjs scan.ply scan.spz --flip --center</pre>
   <section class="recipe" id="svox">
     <div><div class="no">07</div><h2>A voxel model by hand</h2>
       <p>SVOX is plain text. Each line is a z slice, each space-separated group is a y layer (bottom to top), and each character is an x voxel. <code>-</code> is empty; letters are colors. <code>deform</code> smooths the blocks into soft shapes.</p>
-      <p>Save it as <code>stone.svox</code>, then use <code>&lt;model src="stone.svox"&gt;</code>.</p>
+      <p>Each voxel is 12.5cm, and models are centered on their transform. To sit a model on the ground, raise it by half its height. This 3-voxel-tall stone on flat ground (75cm) goes at <code>y = 94cm</code>; resize it with <code>scale3d()</code>.</p>
+      <p>Keep thin parts (stems, legs) 2+ voxels thick with a <code>deform = 1</code> material, or smoothing melts them away. There are ready-made models in <a href="https://webspaces.space/kit/">the kit</a>.</p>
       <div class="see">See: <a href="https://github.com/webspace-sdk/showcase/blob/main/campfire/stone.svox">stone.svox</a> · <a href="https://svox.glitch.me">full reference</a></div></div>
 <pre>size = 5 3 5
 scale = 0.09

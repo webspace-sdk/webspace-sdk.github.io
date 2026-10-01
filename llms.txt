@@ -147,10 +147,19 @@ voxels
 
 That's an apple. Layout of `voxels`: each **line** is one z slice; within a line, each space-separated
 **group** is one y layer, bottom to top; each **character** is one x voxel. `-` is empty; letters are
-colors declared in a `material`. `size = x y z` (or one number for a cube). `scale` is meters per voxel.
-`origin = -y` puts the model's bottom at its placement point. `deform` smooths the shape and `lighting = smooth` shades it.
+colors declared in a `material`. `size = x y z` (or one number for a cube). `deform` smooths the shape and
+`lighting = smooth` shades it.
+
+How webspaces place SVOX models (important):
+- Every voxel is **12.5cm**, whatever the file's `scale` says. Resize with the element's transform (`scale3d(...)`).
+- Models are **centered** on their transform, whatever `origin` says. To stand a model on the ground, put its
+  center half its height above the ground: an 8-voxel-tall model (1m) on flat ground (75cm) goes at
+  `translate3d(Xcm, 125cm, Zcm)`; with `scale3d(2, 2, 2)` it's 2m tall, so `175cm`.
+- Thin parts melt under smoothing: make trunks, stems, and legs at least 2 voxels thick, and give them their own
+  material with `deform = 1` (or 0).
 The world's cel-shaded look comes from these; keep models small (< 32³) and let smoothing do the work.
 Save it as `apple.svox` and add `<model src="apple.svox">`, or paste the text directly into a world.
+Ready-made CC0 models in the house style (trees, rocks, lanterns, benches…): https://webspaces.space/kit/
 Full reference: https://svox.glitch.me
 
 ## Gaussian splats: real places and things
