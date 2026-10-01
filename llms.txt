@@ -13,6 +13,7 @@ or "build a 3D world as a web page", everything you need is here. Produce a sing
 - Showcase (worlds to read and remix): https://webspaces.space/showcase/
 - Starter template (Use this template → enable Pages → live world): https://github.com/webspace-sdk/start
 - Recipes (short copy-pasteable pieces: splats, skies, night, shared clicks, animation, SVOX, VR): https://webspaces.space/learn/
+- Guide, phone scan to shared world (capture, convert, place, publish): https://webspaces.space/learn/scan-to-world.html
 
 ## Which engine script to use
 

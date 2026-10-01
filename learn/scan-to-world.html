@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Your place, in a webspace — Webspaces</title>
+<meta name="description" content="Scan a place or thing with your phone and turn it into a multiplayer world you can share with a link, step by step." />
+<meta property="og:title" content="Your place, in a webspace" />
+<meta property="og:description" content="Scan it with your phone. Walk around it with friends, in a browser. Step by step." />
+<meta property="og:image" content="https://webspaces.space/showcase/specimen/preview.png" />
+<link rel="icon" href="https://webspaces.space/assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Spectral:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root { --night: #061139; --ink: #ecebf7; --dim: #9aa0c8; --faint: #3a4474; --ember: #ff8a4c;
+    --display: "Instrument Serif", Georgia, serif; --body: "Spectral", Georgia, serif; --mono: "IBM Plex Mono", ui-monospace, monospace; }
+  * { box-sizing: border-box; }
+  html { background: var(--night); }
+  body { margin: 0; color: var(--ink); font: 300 19px/1.7 var(--body); background: radial-gradient(900px 500px at 85% -10%, #16266e55, transparent 70%), var(--night); }
+  a { color: inherit; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 clamp(18px, 5vw, 40px) 90px; }
+  header { padding: clamp(56px, 9vw, 110px) 0 28px; }
+  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin-bottom: 26px; }
+  .eyebrow a { text-decoration: none; border-bottom: 1px solid var(--faint); }
+  h1 { font: 400 clamp(44px, 7vw, 80px)/1 var(--display); margin: 0 0 20px; }
+  h1 em { color: var(--dim); }
+  .lede { color: var(--dim); margin: 0; }
+  figure { margin: 36px 0; }
+  figure img { width: 100%; border-radius: 4px; box-shadow: 0 30px 60px -30px #000c, 0 0 0 1px #ffffff12; display: block; }
+  figcaption { font: 400 13px var(--mono); color: var(--dim); margin-top: 10px; }
+  h2 { font: 400 36px/1.1 var(--display); margin: 52px 0 10px; }
+  h2 .n { font: 500 13px var(--mono); color: var(--ember); letter-spacing: .2em; display: block; margin-bottom: 8px; }
+  p { margin: 0 0 16px; }
+  code { font: 400 15px var(--mono); color: #c9cdf0; background: #0b1846; padding: 1px 6px; border-radius: 3px; }
+  pre { font: 400 13.5px/1.65 var(--mono); color: #d6d9f5; background: #030a26; border: 1px solid #ffffff10; border-radius: 4px; padding: 16px 18px; overflow-x: auto; margin: 0 0 18px; }
+  ul { padding-left: 22px; margin: 0 0 16px; } li { margin: 6px 0; }
+  .tip { border-left: 2px solid var(--ember); padding: 4px 0 4px 16px; color: var(--dim); margin: 0 0 18px; }
+  footer { border-top: 1px solid #ffffff14; margin-top: 60px; padding-top: 30px; color: var(--dim); font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><a href="https://webspaces.space">Webspaces</a> &nbsp;/&nbsp; <a href="./">Recipes</a> &nbsp;/&nbsp; Scan to world</div>
+    <h1>Your place,<br /><em>in a webspace.</em></h1>
+    <p class="lede">Scan a room, a garden, or a thing you love with your phone. Then put it in a web page your friends can walk into with you, from a link, in any browser or headset. It takes about twenty minutes and needs no special software.</p>
+  </header>
+
+  <figure>
+    <img src="https://webspaces.space/showcase/specimen/preview.png" alt="A photo-captured potted cactus standing forty times life size in a desert under a real sky." />
+    <figcaption>Specimen: a 452,065-splat capture, one &lt;model&gt; tag.</figcaption>
+  </figure>
+
+  <h2><span class="n">Step 1</span>Capture it</h2>
+  <p>Use a Gaussian splat capture app on your phone. Scaniverse, Polycam, and Luma all work; Scaniverse is free and processes on the phone. Walk slowly around your subject, keeping it centered and well lit.</p>
+  <ul>
+    <li><strong>Objects</strong> (a plant, a sculpture, a pair of shoes): circle it twice, once high and once low.</li>
+    <li><strong>Rooms and outdoor spots</strong>: stand near the middle and turn slowly, then walk the edges.</li>
+    <li>Avoid shiny, transparent, and moving things. They capture as fuzz.</li>
+  </ul>
+  <p>Export the result as <code>.spz</code> if the app offers it (it's about ten times smaller), otherwise <code>.ply</code>.</p>
+
+  <h2><span class="n">Step 2</span>Make a world for it</h2>
+  <p>Open the <a href="https://github.com/webspace-sdk/start">starter template</a>, click <em>Use this template</em> to make your own copy, then turn on <em>Settings → Pages</em> (deploy from <code>main</code>). In a minute you'll have a live world at <code>https://&lt;you&gt;.github.io/&lt;repo&gt;/</code>.</p>
+
+  <h2><span class="n">Step 3</span>Tidy the capture (optional, recommended)</h2>
+  <p>Most <code>.ply</code> captures come out upside down and off-center. A small converter fixes both, trims the floor if you like, and shrinks the file. It's plain Node with no installs:</p>
+<pre>curl -O https://raw.githubusercontent.com/webspace-sdk/showcase/main/specimen/make/splat2spz.mjs
+curl -O https://raw.githubusercontent.com/webspace-sdk/showcase/main/specimen/make/spz-writer.mjs
+curl -O https://raw.githubusercontent.com/webspace-sdk/showcase/main/specimen/make/splat-loader.mjs
+
+node splat2spz.mjs my-scan.ply my-scan.spz --flip --center</pre>
+  <p class="tip"><code>--flip</code> turns it upright, <code>--center</code> puts its footprint at the origin with its base at ground level, <code>--crop-below=0.05</code> trims a floor or turntable, and <code>--max-splats=300000</code> keeps big captures quick to load.</p>
+
+  <h2><span class="n">Step 4</span>Put it in the page</h2>
+  <p>Add the <code>.spz</code> file to your repo next to <code>index.html</code>, and add one line inside <code>&lt;body&gt;</code>. Splats keep their real-world size. First, in <code>&lt;head&gt;</code>, change the terrain from <code>hills</code> to <code>flat</code>, so the ground is level at 75cm. The starter's sample tree, lantern, and apple were placed for the hills, so delete them (or lower them). Then this stands your scan in front of you:</p>
+<pre>&lt;meta name="webspace.environment.terrain.type" content="flat" /&gt;</pre>
+<pre>&lt;model id="my-scan" src="my-scan.spz"
+  style="transform: translate3d(0cm, 75cm, -300cm)"&gt;&lt;/model&gt;</pre>
+  <p>Make it a monument with <code>scale3d(4, 4, 4)</code>, spin it with <code>rotateY(1rad)</code>, or, if it's a whole room, put it at <code>translate3d(0cm, 75cm, 0cm)</code> and stand inside it.</p>
+  <p>For places that are bigger than a room, add these to <code>&lt;head&gt;</code> so you can see far, and give the scene a real sky:</p>
+<pre>&lt;meta name="webspace.environment.fog" content="off" /&gt;
+&lt;meta name="webspace.environment.sky" content="sky.jpg" /&gt;</pre>
+  <p class="tip">Any 360° photo works as <code>sky.jpg</code>. Poly Haven has hundreds of free ones: download the tonemapped JPG and resize it to 4096×2048.</p>
+
+  <h2><span class="n">Step 5</span>Share it</h2>
+  <p>Commit, wait a minute, and send the link. Everyone who opens it is there together, with voice. On a Quest, they can press <em>Enter VR</em> and stand in it.</p>
+  <p>Want more? Add a sign (<code>&lt;label&gt;</code>), some <a href="https://webspaces.space/kit/">free models</a>, or a little script so touching something does something for everyone. The <a href="./">recipes</a> show how, and <a href="https://webspaces.space/llms.txt">llms.txt</a> teaches all of it to your AI agent: <em>"put my scan on a little hill at sunset and add a bench facing it."</em></p>
+
+  <footer>Made one? We'd love to see it. Open an issue at <a href="https://github.com/webspace-sdk/showcase/issues">webspace-sdk/showcase</a> with a link.</footer>
+</div>
+</body>
+</html>
